@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>音频分析 - 日式烟花</title>
+  <script type="module" crossorigin src="/hanabi/assets/audioAnalyzer-BfiV4dfU.js"></script>
+  <link rel="modulepreload" crossorigin href="/hanabi/assets/math-CmfUW7_Q.js">
+  <link rel="modulepreload" crossorigin href="/hanabi/assets/BeatDetector--57tYSAC.js">
+  <link rel="stylesheet" crossorigin href="/hanabi/assets/math-BJGfzMEg.css">
+  <link rel="stylesheet" crossorigin href="/hanabi/assets/audioAnalyzer-DAhAXPHM.css">
+</head>
+<body>
+  <nav id="nav">
+    <a href="/hanabi/">主页</a>
+    <a href="/hanabi/pages/firework-types/">烟花类型</a>
+    <a href="/hanabi/pages/audio-analyzer/" class="active">音频分析</a>
+    <a href="/hanabi/pages/particle-physics/">粒子物理</a>
+    <a href="/hanabi/pages/renderer-debug/">渲染器调试</a>
+    <a href="/hanabi/pages/launcher-test/">发射器测试</a>
+  </nav>
+
+  <div id="app">
+    <div class="header-bar">
+      <label class="btn-file">
+        加载音频
+        <input type="file" id="audioInput" accept="audio/*">
+      </label>
+      <span id="fileName">未选择文件</span>
+      <div class="header-controls">
+        <button id="playBtn" disabled>播放</button>
+        <button id="stopBtn" disabled>停止</button>
+        <button id="exportBtn" disabled>导出</button>
+      </div>
+    </div>
+
+    <div class="analyzer-container">
+      <!-- 频谱瀑布图 -->
+      <div class="section spectrogram-section">
+        <div class="section-header">
+          <h3>频谱瀑布图</h3>
+          <span class="section-hint">颜色深度表示能量强度，纵轴为频率(低→高)</span>
+        </div>
+        <div class="canvas-wrapper">
+          <canvas id="spectrogramCanvas"></canvas>
+          <div id="spectrogramPlayhead" class="playhead"></div>
+        </div>
+      </div>
+
+      <!-- 频段能量分离 -->
+      <div class="section bands-section">
+        <div class="section-header">
+          <h3>频段能量分离</h3>
+          <div class="band-legend">
+            <span class="legend-item bass">低频 (20-200Hz)</span>
+            <span class="legend-item mid">中频 (200-2kHz)</span>
+            <span class="legend-item high">高频 (2k-8kHz)</span>
+          </div>
+        </div>
+        <div class="bands-container">
+          <div class="band-row">
+            <span class="band-label">低频<br><small>鼓点/贝斯</small></span>
+            <div class="band-canvas-wrapper">
+              <canvas id="bassCanvas"></canvas>
+            </div>
+          </div>
+          <div class="band-row">
+            <span class="band-label">中频<br><small>人声/吉他</small></span>
+            <div class="band-canvas-wrapper">
+              <canvas id="midCanvas"></canvas>
+            </div>
+          </div>
+          <div class="band-row">
+            <span class="band-label">高频<br><small>镲片/合成器</small></span>
+            <div class="band-canvas-wrapper">
+              <canvas id="highCanvas"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 节拍网格 -->
+      <div class="section beat-section">
+        <div class="section-header">
+          <h3>节拍网格</h3>
+          <div class="bpm-display">
+            <span>BPM: <strong id="bpmValue">--</strong></span>
+            <span class="confidence">置信度: <span id="confidenceValue">--</span></span>
+          </div>
+        </div>
+        <div class="canvas-wrapper">
+          <canvas id="beatCanvas"></canvas>
+          <div id="beatPlayhead" class="playhead"></div>
+        </div>
+      </div>
+
+      <!-- 事件时间轴 -->
+      <div class="section timeline-section">
+        <div class="section-header">
+          <h3>烟花事件时间轴</h3>
+          <div class="timeline-legend">
+            <span class="legend-item bass-event">低音爆发</span>
+            <span class="legend-item mid-event">旋律音</span>
+            <span class="legend-item piano-event">钢琴音</span>
+            <span class="legend-item climax-event">高潮段</span>
+          </div>
+        </div>
+        <div id="timelineContainer">
+          <div class="timeline-row" data-type="bass"><span class="row-label">鼓点</span><div class="events-area"></div></div>
+          <div class="timeline-row" data-type="mid"><span class="row-label">旋律</span><div class="events-area"></div></div>
+          <div class="timeline-row" data-type="piano"><span class="row-label">钢琴</span><div class="events-area"></div></div>
+          <div class="timeline-row" data-type="climax"><span class="row-label">高潮</span><div class="events-area"></div></div>
+        </div>
+      </div>
+
+      <!-- 播放进度 -->
+      <div class="progress-section">
+        <span id="timeDisplay">00:00 / 00:00</span>
+        <div class="progress-bar">
+          <div id="progressFill"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="status">上传音频文件开始分析</div>
+  </div>
+
+</body>
+</html>

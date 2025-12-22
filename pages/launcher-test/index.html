@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>发射器测试 - 日式烟花</title>
+  <script type="module" crossorigin src="/hanabi/assets/launcherTest-BHQPzGmb.js"></script>
+  <link rel="modulepreload" crossorigin href="/hanabi/assets/math-CmfUW7_Q.js">
+  <link rel="modulepreload" crossorigin href="/hanabi/assets/Particle-BIbDLJ2h.js">
+  <link rel="modulepreload" crossorigin href="/hanabi/assets/Firework-bLsaGrCq.js">
+  <link rel="stylesheet" crossorigin href="/hanabi/assets/math-BJGfzMEg.css">
+  <link rel="stylesheet" crossorigin href="/hanabi/assets/launcherTest-CzYqiCZE.css">
+</head>
+<body>
+  <nav id="nav">
+    <a href="/hanabi/">主页</a>
+    <a href="/hanabi/pages/firework-types/">烟花类型</a>
+    <a href="/hanabi/pages/audio-analyzer/">音频分析</a>
+    <a href="/hanabi/pages/particle-physics/">粒子物理</a>
+    <a href="/hanabi/pages/renderer-debug/">渲染器调试</a>
+    <a href="/hanabi/pages/launcher-test/" class="active">发射器测试</a>
+  </nav>
+
+  <div id="app">
+    <div class="canvas-container">
+      <canvas id="canvas"></canvas>
+      <div id="crosshair"></div>
+    </div>
+
+    <div class="control-panel">
+      <h2>发射器测试</h2>
+
+      <div class="param-group">
+        <h3>发射位置</h3>
+        <label>
+          X位置: <span id="launchXVal">50%</span>
+          <input type="range" id="launchX" min="5" max="95" value="50">
+        </label>
+        <label>
+          目标高度: <span id="targetYVal">25%</span>
+          <input type="range" id="targetY" min="10" max="60" value="25">
+        </label>
+        <p class="hint">点击画布可直接设置发射位置和目标高度</p>
+      </div>
+
+      <div class="param-group">
+        <h3>烟花类型</h3>
+        <div class="type-buttons">
+          <button class="type-btn active" data-type="kiku">菊</button>
+          <button class="type-btn" data-type="willow">柳</button>
+          <button class="type-btn" data-type="botan">牡丹</button>
+          <button class="type-btn" data-type="random">随机</button>
+        </div>
+      </div>
+
+      <div class="param-group">
+        <h3>齐射设置</h3>
+        <label>
+          齐射数量: <span id="salvoCountVal">5</span>
+          <input type="range" id="salvoCount" min="1" max="20" value="5">
+        </label>
+        <label>
+          齐射间隔: <span id="salvoDelayVal">50ms</span>
+          <input type="range" id="salvoDelay" min="0" max="200" value="50" step="10">
+        </label>
+        <label>
+          分布方式:
+          <select id="distribution">
+            <option value="center">居中聚集</option>
+            <option value="spread" selected>均匀分布</option>
+            <option value="random">随机分布</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="param-group">
+        <h3>物理参数</h3>
+        <label>
+          能量系数: <span id="energyVal">0.50</span>
+          <input type="range" id="energy" min="0.1" max="1" value="0.5" step="0.1">
+        </label>
+      </div>
+
+      <div class="actions">
+        <button id="singleBtn">单发</button>
+        <button id="salvoBtn">齐射</button>
+        <button id="clearBtn">清空</button>
+      </div>
+
+      <div class="stats">
+        <span>粒子: <span id="particleCount">0</span></span>
+        <span>烟花: <span id="fireworkCount">0</span></span>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
