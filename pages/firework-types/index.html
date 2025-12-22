@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>烟花类型 - 日式烟花</title>
+  <link rel="stylesheet" href="/src/styles/main.css">
+  <link rel="stylesheet" href="/src/styles/firework-types.css">
+</head>
+<body>
+  <nav id="nav">
+    <a href="%BASE_URL%">主页</a>
+    <a href="%BASE_URL%pages/firework-types/" class="active">烟花类型</a>
+    <a href="%BASE_URL%pages/audio-analyzer/">音频分析</a>
+    <a href="%BASE_URL%pages/particle-physics/">粒子物理</a>
+    <a href="%BASE_URL%pages/renderer-debug/">渲染器调试</a>
+    <a href="%BASE_URL%pages/launcher-test/">发射器测试</a>
+  </nav>
+
+  <div id="app">
+    <h1>烟花类型展示</h1>
+
+    <div class="firework-grid">
+      <div class="firework-panel" data-type="kiku">
+        <canvas class="preview-canvas"></canvas>
+        <h2>菊 (Kiku)</h2>
+        <p>均匀球形爆炸，中等长度轨迹，经典日式烟花</p>
+        <button class="launch-btn">发射</button>
+        <div class="params">
+          <label>粒子数量: <input type="range" data-param="count" min="50" max="300" value="150"></label>
+          <label>速度: <input type="range" data-param="speed" min="1" max="10" value="5"></label>
+          <label>重力: <input type="range" data-param="gravity" min="0.01" max="0.1" value="0.04" step="0.01"></label>
+        </div>
+      </div>
+
+      <div class="firework-panel" data-type="willow">
+        <canvas class="preview-canvas"></canvas>
+        <h2>柳 (Willow)</h2>
+        <p>金色下垂效果，优雅的长轨迹，如垂柳般飘逸</p>
+        <button class="launch-btn">发射</button>
+        <div class="params">
+          <label>粒子数量: <input type="range" data-param="count" min="50" max="200" value="100"></label>
+          <label>速度: <input type="range" data-param="speed" min="1" max="8" value="4"></label>
+          <label>重力: <input type="range" data-param="gravity" min="0.02" max="0.12" value="0.06" step="0.01"></label>
+        </div>
+      </div>
+
+      <div class="firework-panel" data-type="botan">
+        <canvas class="preview-canvas"></canvas>
+        <h2>牡丹 (Botan)</h2>
+        <p>变化多端的爆炸，短轨迹，色彩绚丽</p>
+        <button class="launch-btn">发射</button>
+        <div class="params">
+          <label>粒子数量: <input type="range" data-param="count" min="30" max="150" value="80"></label>
+          <label>速度: <input type="range" data-param="speed" min="1" max="12" value="6"></label>
+          <label>重力: <input type="range" data-param="gravity" min="0.02" max="0.1" value="0.05" step="0.01"></label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/pages/firework-types.ts"></script>
+</body>
+</html>

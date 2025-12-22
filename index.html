@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>打ち上げ花火 - 日式烟花</title>
+  <link rel="stylesheet" href="/src/styles/main.css">
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <div id="reflection"></div>
+
+  <nav id="nav">
+    <a href="%BASE_URL%" class="active">主页</a>
+    <a href="%BASE_URL%pages/firework-types/">烟花类型</a>
+    <a href="%BASE_URL%pages/audio-analyzer/">音频分析</a>
+    <a href="%BASE_URL%pages/particle-physics/">粒子物理</a>
+    <a href="%BASE_URL%pages/renderer-debug/">渲染器调试</a>
+    <a href="%BASE_URL%pages/launcher-test/">发射器测试</a>
+  </nav>
+
+  <div id="ui">
+    <div class="controls">
+      <label class="btn-file">
+        加载音乐
+        <input type="file" id="audioInput" accept="audio/*">
+      </label>
+      <button id="demoBtn">演示模式</button>
+      <button id="pauseBtn">暂停</button>
+    </div>
+    <div id="status">等待输入...</div>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

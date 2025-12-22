@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>粒子物理 - 日式烟花</title>
+  <link rel="stylesheet" href="/src/styles/main.css">
+  <link rel="stylesheet" href="/src/styles/particle-physics.css">
+</head>
+<body>
+  <nav id="nav">
+    <a href="%BASE_URL%">主页</a>
+    <a href="%BASE_URL%pages/firework-types/">烟花类型</a>
+    <a href="%BASE_URL%pages/audio-analyzer/">音频分析</a>
+    <a href="%BASE_URL%pages/particle-physics/" class="active">粒子物理</a>
+    <a href="%BASE_URL%pages/renderer-debug/">渲染器调试</a>
+    <a href="%BASE_URL%pages/launcher-test/">发射器测试</a>
+  </nav>
+
+  <div id="app">
+    <div class="canvas-container">
+      <canvas id="canvas"></canvas>
+    </div>
+
+    <div class="control-panel">
+      <h2>粒子物理实验室</h2>
+
+      <div class="param-group">
+        <h3>物理参数</h3>
+        <label>
+          摩擦力: <span id="frictionVal">0.95</span>
+          <input type="range" id="friction" min="0.8" max="0.99" value="0.95" step="0.01">
+        </label>
+        <label>
+          重力: <span id="gravityVal">0.05</span>
+          <input type="range" id="gravity" min="0" max="0.2" value="0.05" step="0.01">
+        </label>
+        <label>
+          衰减: <span id="decayVal">0.01</span>
+          <input type="range" id="decay" min="0.001" max="0.05" value="0.01" step="0.001">
+        </label>
+      </div>
+
+      <div class="param-group">
+        <h3>外观参数</h3>
+        <label>
+          轨迹长度: <span id="trailVal">10</span>
+          <input type="range" id="trail" min="1" max="30" value="10">
+        </label>
+        <label>
+          线条宽度: <span id="lineWidthVal">2</span>
+          <input type="range" id="lineWidth" min="0.5" max="5" value="2" step="0.5">
+        </label>
+        <label>
+          色相: <span id="hueVal">0</span>
+          <input type="range" id="hue" min="0" max="360" value="0">
+        </label>
+      </div>
+
+      <div class="param-group">
+        <h3>发射参数</h3>
+        <label>
+          粒子数量: <span id="countVal">50</span>
+          <input type="range" id="count" min="10" max="200" value="50">
+        </label>
+        <label>
+          初始速度: <span id="speedVal">5</span>
+          <input type="range" id="speed" min="1" max="15" value="5">
+        </label>
+      </div>
+
+      <div class="actions">
+        <button id="emitBtn">发射粒子</button>
+        <button id="clearBtn">清空</button>
+        <button id="resetBtn">重置参数</button>
+      </div>
+
+      <p class="hint">点击画布可在该位置发射粒子</p>
+    </div>
+  </div>
+
+  <script type="module" src="/src/pages/particle-physics.ts"></script>
+</body>
+</html>
