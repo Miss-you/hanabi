@@ -256,6 +256,20 @@ import { random } from '@/utils/math';
 
 ---
 
+### 4.2 文档维护（工程最佳实践补充）
+
+**更新文件**:
+- `README.md`
+- `AGNET.md`
+- `docs/PROJECT_HANDOVER.md`
+
+**补充内容**:
+- Node 版本与包管理器约束
+- `node_modules` 管理与可复现安装
+- 多项目复用建议（workspaces/包发布）
+
+---
+
 ## 五、类型定义扩展 (Type Definitions)
 
 **修改文件**: `src/core/types.ts`

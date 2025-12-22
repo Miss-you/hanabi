@@ -43,7 +43,7 @@ export class FrequencyAnalyzer {
    */
   async analyze(
     buffer: AudioBuffer,
-    callbacks?: FrequencyAnalyzerCallbacks
+    callbacks?: FrequencyAnalyzerCallbacks,
   ): Promise<FrequencyBands> {
     const sampleRate = buffer.sampleRate;
     const channelData = buffer.getChannelData(0);
@@ -69,7 +69,11 @@ export class FrequencyAnalyzer {
     // Process in chunks to avoid blocking UI
     const chunkSize = 100; // Process 100 frames at a time
 
-    for (let chunkStart = 0; chunkStart < totalFrames; chunkStart += chunkSize) {
+    for (
+      let chunkStart = 0;
+      chunkStart < totalFrames;
+      chunkStart += chunkSize
+    ) {
       const chunkEnd = Math.min(chunkStart + chunkSize, totalFrames);
 
       // Process this chunk
@@ -77,7 +81,11 @@ export class FrequencyAnalyzer {
         const startSample = frame * samplesPerFrame;
 
         // Extract and compute FFT using optimized method
-        const magnitudes = this.computeFFT(channelData, startSample, sampleRate);
+        const magnitudes = this.computeFFT(
+          channelData,
+          startSample,
+          sampleRate,
+        );
 
         // Store spectrogram frame (downsample for memory efficiency)
         const downsampledMag = this.downsampleSpectrum(magnitudes, 128);
@@ -121,7 +129,7 @@ export class FrequencyAnalyzer {
   private computeFFT(
     channelData: Float32Array,
     startSample: number,
-    _sampleRate: number
+    _sampleRate: number,
   ): Float32Array {
     const N = this.fftSize;
     const magnitudes = new Float32Array(N / 2);
@@ -156,7 +164,7 @@ export class FrequencyAnalyzer {
     const levels = Math.log2(N);
 
     if (Math.pow(2, levels) !== N) {
-      throw new Error('FFT size must be a power of 2');
+      throw new Error("FFT size must be a power of 2");
     }
 
     // Bit-reversal permutation
@@ -215,7 +223,10 @@ export class FrequencyAnalyzer {
   /**
    * Downsample spectrum for memory efficiency
    */
-  private downsampleSpectrum(magnitudes: Float32Array, targetSize: number): Float32Array {
+  private downsampleSpectrum(
+    magnitudes: Float32Array,
+    targetSize: number,
+  ): Float32Array {
     const result = new Float32Array(targetSize);
     const ratio = magnitudes.length / targetSize;
 
@@ -238,7 +249,7 @@ export class FrequencyAnalyzer {
   private calculateBandEnergy(
     magnitudes: Float32Array,
     startBin: number,
-    endBin: number
+    endBin: number,
   ): number {
     let sum = 0;
     const count = Math.min(endBin, magnitudes.length) - startBin;
@@ -276,14 +287,22 @@ export class FrequencyAnalyzer {
   /**
    * Get frequency for a given bin index
    */
-  static binToFrequency(bin: number, sampleRate: number, fftSize: number): number {
+  static binToFrequency(
+    bin: number,
+    sampleRate: number,
+    fftSize: number,
+  ): number {
     return (bin * sampleRate) / fftSize;
   }
 
   /**
    * Get bin index for a given frequency
    */
-  static frequencyToBin(frequency: number, sampleRate: number, fftSize: number): number {
+  static frequencyToBin(
+    frequency: number,
+    sampleRate: number,
+    fftSize: number,
+  ): number {
     return Math.round((frequency * fftSize) / sampleRate);
   }
 }

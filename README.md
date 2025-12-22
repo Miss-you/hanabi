@@ -18,6 +18,17 @@ npm run build
 npm run preview
 ```
 
+## 环境要求
+
+- Node.js >= 18（建议 20 LTS）
+- 包管理器：npm（本仓库使用 `package-lock.json`）
+
+## 依赖管理约定
+
+- `node_modules` 位于项目根目录，仅本地使用，不入库（已在 `.gitignore` 忽略）。
+- 本地开发用 `npm install`；干净环境/CI 建议用 `npm ci`。
+- 若需要节省磁盘或多项目复用，可评估 `pnpm`/workspaces，但需统一包管理器并维护锁文件。
+
 ## 功能特性
 
 - **音乐模式**: 上传音频文件，自动分析节奏、频率，生成同步烟花效果
@@ -77,6 +88,12 @@ src/
 - **图形**: Canvas 2D API
 - **音频**: Web Audio API
 - **代码规范**: ESLint + Prettier
+
+## 多项目复用建议
+
+- **单仓库多包**：使用 npm/pnpm/yarn workspaces 拆分共享模块。
+- **独立包复用**：抽出为私有/公有 npm 包。
+- **本地调试**：`file:` 依赖或 `npm link` 仅用于开发期。
 
 ## 开发命令
 

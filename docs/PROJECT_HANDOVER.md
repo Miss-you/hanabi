@@ -14,6 +14,14 @@ Hanabi-TS 是一个基于 Web Audio + Canvas 的日式音乐烟花可视化系�
 - ESLint + Prettier：保持代码一致性与可维护性。
 - 多页面入口（`vite.config.ts`）：调试页独立入口，便于验证单模块。
 
+## 2.1 开发环境与依赖管理 (Local Setup)
+
+- Node.js >= 18（建议 20 LTS），避免环境差异。
+- 统一使用 npm，`package-lock.json` 为依赖版本来源。
+- `node_modules` 位于项目根目录，仅本地使用，不提交代码库（已在 `.gitignore` 忽略）。
+- 干净环境/CI 使用 `npm ci` 以保证可复现安装。
+- 多项目复用建议：优先 workspaces；跨仓库复用可抽为 npm 包。
+
 ## 3. 文件地图 (File Map)
 
 ```
@@ -79,3 +87,4 @@ Hanabi-TS 是一个基于 Web Audio + Canvas 的日式音乐烟花可视化系�
 
 - 结构变动时更新“文件地图”，行为变动时更新“进度快照”。
 - 每次迭代完成后更新本文件的日期与下一步指令。
+- 依赖变动需更新 `package-lock.json`，避免混用包管理器。

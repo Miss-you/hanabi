@@ -4,10 +4,10 @@
 export function setupCanvas(
   canvas: HTMLCanvasElement,
   width?: number,
-  height?: number
+  height?: number,
 ): CanvasRenderingContext2D {
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('Failed to get 2D context');
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Failed to get 2D context");
 
   const dpr = window.devicePixelRatio || 1;
   const w = width ?? canvas.clientWidth;
@@ -29,7 +29,7 @@ export function clearCanvas(
   ctx: CanvasRenderingContext2D,
   width: number,
   height: number,
-  color: string = '#000'
+  color: string = "#000",
 ): void {
   ctx.globalAlpha = 1;
   ctx.fillStyle = color;
@@ -44,7 +44,7 @@ export function drawGradient(
   width: number,
   height: number,
   topColor: string,
-  bottomColor: string
+  bottomColor: string,
 ): void {
   const grad = ctx.createLinearGradient(0, 0, 0, height);
   grad.addColorStop(0, topColor);

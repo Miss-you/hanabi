@@ -1,4 +1,4 @@
-import { AudioEvent, FireworkType } from '@/core/types';
+import { AudioEvent, FireworkType } from "@/core/types";
 
 export interface TimelineCallbacks {
   onBass?: (event: AudioEvent) => void;
@@ -44,7 +44,7 @@ export class Timeline {
       this.audioContext = new AudioContext();
     }
 
-    if (this.audioContext.state === 'suspended') {
+    if (this.audioContext.state === "suspended") {
       await this.audioContext.resume();
     }
 
@@ -76,7 +76,7 @@ export class Timeline {
    * Pause playback
    */
   async pause(): Promise<void> {
-    if (this.audioContext && this.audioContext.state === 'running') {
+    if (this.audioContext && this.audioContext.state === "running") {
       await this.audioContext.suspend();
       this.isPaused = true;
     }
@@ -86,7 +86,7 @@ export class Timeline {
    * Resume playback
    */
   async resume(): Promise<void> {
-    if (this.audioContext && this.audioContext.state === 'suspended') {
+    if (this.audioContext && this.audioContext.state === "suspended") {
       await this.audioContext.resume();
       this.isPaused = false;
     }
@@ -144,7 +144,7 @@ export class Timeline {
    */
   private fireEvent(event: AudioEvent, currentTime: number): void {
     switch (event.type) {
-      case 'bass':
+      case "bass":
         if (event.isClimax && currentTime - this.lastSalvoTime > 2.0) {
           this.callbacks.onClimax?.(event);
           this.lastSalvoTime = currentTime;
@@ -152,10 +152,10 @@ export class Timeline {
           this.callbacks.onBass?.(event);
         }
         break;
-      case 'mid':
+      case "mid":
         this.callbacks.onMid?.(event);
         break;
-      case 'piano':
+      case "piano":
         this.callbacks.onPiano?.(event);
         break;
     }
@@ -172,18 +172,18 @@ export class Timeline {
    * Get event type to firework type mapping
    */
   static eventToFireworkType(
-    eventType: AudioEvent['type'],
-    isClimax: boolean
+    eventType: AudioEvent["type"],
+    isClimax: boolean,
   ): FireworkType {
     switch (eventType) {
-      case 'bass':
-        return isClimax || Math.random() > 0.6 ? 'willow' : 'kiku';
-      case 'mid':
-        return 'botan';
-      case 'piano':
-        return 'botan';
+      case "bass":
+        return isClimax || Math.random() > 0.6 ? "willow" : "kiku";
+      case "mid":
+        return "botan";
+      case "piano":
+        return "botan";
       default:
-        return 'kiku';
+        return "kiku";
     }
   }
 }

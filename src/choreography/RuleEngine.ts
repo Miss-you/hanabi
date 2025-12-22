@@ -4,8 +4,8 @@ import {
   PatternType,
   LaunchCommand,
   SectionType,
-} from '@/core/types';
-import { BeatInfo } from '@/audio/BeatDetector';
+} from "@/core/types";
+import { BeatInfo } from "@/audio/BeatDetector";
 
 /**
  * Context available to rules for evaluation
@@ -57,15 +57,17 @@ export class RuleEngine {
   private registerDefaultRules(): void {
     // Priority 100: Grand Finale (last 10 seconds)
     this.addRule({
-      id: 'finale',
+      id: "finale",
       priority: 100,
       cooldown: 10,
       exclusive: true,
       condition: (ctx) => {
-        return ctx.duration - ctx.currentTime < 10 && ctx.currentEvent.energy > 0.6;
+        return (
+          ctx.duration - ctx.currentTime < 10 && ctx.currentEvent.energy > 0.6
+        );
       },
       action: (ctx) => ({
-        pattern: 'finale',
+        pattern: "finale",
         launchTime: ctx.currentTime,
         params: {
           duration: 0,
@@ -77,19 +79,19 @@ export class RuleEngine {
 
     // Priority 90: Climax Salvo
     this.addRule({
-      id: 'climax_salvo',
+      id: "climax_salvo",
       priority: 90,
       cooldown: 2,
       exclusive: true,
       condition: (ctx) => {
         return (
-          ctx.currentSection?.type === 'climax' &&
+          ctx.currentSection?.type === "climax" &&
           ctx.currentEvent.isClimax &&
-          ctx.currentEvent.type === 'bass'
+          ctx.currentEvent.type === "bass"
         );
       },
       action: (ctx) => ({
-        pattern: 'salvo',
+        pattern: "salvo",
         launchTime: ctx.currentTime,
         params: {
           duration: 0,
@@ -103,7 +105,7 @@ export class RuleEngine {
 
     // Priority 85: Beat Drop (first beat after quiet section)
     this.addRule({
-      id: 'beat_drop',
+      id: "beat_drop",
       priority: 85,
       cooldown: 4,
       exclusive: true,
@@ -112,7 +114,7 @@ export class RuleEngine {
 
         // Check if this is near a beat
         const nearBeat = ctx.beatInfo.beats.some(
-          (beat) => Math.abs(beat - ctx.currentTime) < 0.1
+          (beat) => Math.abs(beat - ctx.currentTime) < 0.1,
         );
         if (!nearBeat) return false;
 
@@ -122,7 +124,7 @@ export class RuleEngine {
         return recentEnergy < 0.3 && ctx.currentEvent.energy > 0.6;
       },
       action: (ctx) => ({
-        pattern: 'cluster',
+        pattern: "cluster",
         launchTime: ctx.currentTime,
         params: {
           duration: 0,
@@ -136,7 +138,7 @@ export class RuleEngine {
 
     // Priority 80: Section Transition
     this.addRule({
-      id: 'section_transition',
+      id: "section_transition",
       priority: 80,
       cooldown: 8,
       exclusive: false,
@@ -147,15 +149,15 @@ export class RuleEngine {
       },
       action: (ctx) => {
         const sectionPatterns: Record<SectionType, PatternType> = {
-          intro: 'scatter',
-          verse: 'single',
-          prechorus: 'rising',
-          chorus: 'symmetric',
-          bridge: 'cross',
-          climax: 'salvo',
-          outro: 'scatter',
+          intro: "scatter",
+          verse: "single",
+          prechorus: "rising",
+          chorus: "symmetric",
+          bridge: "cross",
+          climax: "salvo",
+          outro: "scatter",
         };
-        const pattern = sectionPatterns[ctx.currentSection!.type] || 'single';
+        const pattern = sectionPatterns[ctx.currentSection!.type] || "single";
 
         return {
           pattern,
@@ -171,19 +173,19 @@ export class RuleEngine {
 
     // Priority 70: Chorus Symmetric
     this.addRule({
-      id: 'chorus_symmetric',
+      id: "chorus_symmetric",
       priority: 70,
       cooldown: 1.5,
       exclusive: false,
       condition: (ctx) => {
         return (
-          ctx.currentSection?.type === 'chorus' &&
-          ctx.currentEvent.type === 'bass' &&
+          ctx.currentSection?.type === "chorus" &&
+          ctx.currentEvent.type === "bass" &&
           ctx.currentEvent.energy > 0.5
         );
       },
       action: (ctx) => ({
-        pattern: 'symmetric',
+        pattern: "symmetric",
         launchTime: ctx.currentTime,
         params: {
           duration: 0,
@@ -197,12 +199,12 @@ export class RuleEngine {
 
     // Priority 60: Piano Beat Sync
     this.addRule({
-      id: 'piano_beat_sync',
+      id: "piano_beat_sync",
       priority: 60,
       cooldown: 0.3,
       exclusive: false,
       condition: (ctx) => {
-        if (ctx.currentEvent.type !== 'piano' || !ctx.beatInfo) return false;
+        if (ctx.currentEvent.type !== "piano" || !ctx.beatInfo) return false;
 
         // Check if event is near a beat
         const nearestBeat = ctx.beatInfo.beats.reduce((nearest, beat) => {
@@ -215,13 +217,13 @@ export class RuleEngine {
         return Math.abs(nearestBeat - ctx.currentEvent.explodeTime) < 0.05;
       },
       action: (ctx) => ({
-        pattern: 'single',
+        pattern: "single",
         launchTime: ctx.currentTime,
         params: {
           duration: 0,
           targetY: ctx.currentEvent.targetY,
           energy: Math.max(0.5, ctx.currentEvent.energy * 0.9), // Ensure minimum visibility
-          type: 'piano',
+          type: "piano",
           hue: 45, // Golden warm color
         },
       }),
@@ -229,61 +231,63 @@ export class RuleEngine {
 
     // Priority 50: Bass Impact
     this.addRule({
-      id: 'bass_impact',
+      id: "bass_impact",
       priority: 50,
       cooldown: 0.35,
       exclusive: false,
       condition: (ctx) => {
-        return ctx.currentEvent.type === 'bass' && ctx.currentEvent.energy > 0.4;
+        return (
+          ctx.currentEvent.type === "bass" && ctx.currentEvent.energy > 0.4
+        );
       },
       action: (ctx) => ({
-        pattern: 'single',
+        pattern: "single",
         launchTime: ctx.currentTime,
         params: {
           duration: 0,
           targetY: ctx.currentEvent.targetY,
           energy: ctx.currentEvent.energy,
-          type: ctx.currentEvent.isClimax ? 'willow' : 'kiku',
+          type: ctx.currentEvent.isClimax ? "willow" : "kiku",
         },
       }),
     });
 
     // Priority 40: Mid Accent
     this.addRule({
-      id: 'mid_accent',
+      id: "mid_accent",
       priority: 40,
       cooldown: 0.2,
       exclusive: false,
       condition: (ctx) => {
-        return ctx.currentEvent.type === 'mid' && ctx.currentEvent.energy > 0.3;
+        return ctx.currentEvent.type === "mid" && ctx.currentEvent.energy > 0.3;
       },
       action: (ctx) => ({
-        pattern: 'single',
+        pattern: "single",
         launchTime: ctx.currentTime,
         params: {
           duration: 0,
           targetY: ctx.currentEvent.targetY,
           energy: ctx.currentEvent.energy * 0.8,
-          type: 'botan',
+          type: "botan",
         },
       }),
     });
 
     // Priority 20: Ambient Scatter (background fill)
     this.addRule({
-      id: 'ambient_scatter',
+      id: "ambient_scatter",
       priority: 20,
       cooldown: 3,
       exclusive: false,
       condition: (ctx) => {
         return (
-          ctx.currentEvent.type === 'piano' &&
-          ctx.currentSection?.type !== 'climax' &&
+          ctx.currentEvent.type === "piano" &&
+          ctx.currentSection?.type !== "climax" &&
           ctx.currentEvent.energy < 0.3
         );
       },
       action: (ctx) => ({
-        pattern: 'scatter',
+        pattern: "scatter",
         launchTime: ctx.currentTime,
         params: {
           duration: 0,

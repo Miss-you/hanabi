@@ -1,4 +1,4 @@
-import { AudioEvent, MusicSection, SectionType } from '@/core/types';
+import { AudioEvent, MusicSection, SectionType } from "@/core/types";
 
 /**
  * Window for analyzing energy patterns
@@ -9,7 +9,7 @@ interface AnalysisWindow {
   avgEnergy: number;
   eventCount: number;
   climaxCount: number;
-  trend: 'rising' | 'falling' | 'stable';
+  trend: "rising" | "falling" | "stable";
 }
 
 /**
@@ -30,7 +30,7 @@ export class SectionDetector {
    */
   detect(events: AudioEvent[], duration: number): MusicSection[] {
     if (events.length === 0 || duration <= 0) {
-      return [this.createSection('verse', 0, duration, 0.5, 0)];
+      return [this.createSection("verse", 0, duration, 0.5, 0)];
     }
 
     // Step 1: Create analysis windows
@@ -54,7 +54,10 @@ export class SectionDetector {
   /**
    * Create analysis windows from events
    */
-  private createWindows(events: AudioEvent[], duration: number): AnalysisWindow[] {
+  private createWindows(
+    events: AudioEvent[],
+    duration: number,
+  ): AnalysisWindow[] {
     const windows: AnalysisWindow[] = [];
     const windowCount = Math.ceil(duration / this.windowSize);
 
@@ -64,13 +67,14 @@ export class SectionDetector {
 
       // Get events in this window
       const windowEvents = events.filter(
-        (e) => e.explodeTime >= startTime && e.explodeTime < endTime
+        (e) => e.explodeTime >= startTime && e.explodeTime < endTime,
       );
 
       // Calculate metrics
       const avgEnergy =
         windowEvents.length > 0
-          ? windowEvents.reduce((sum, e) => sum + e.energy, 0) / windowEvents.length
+          ? windowEvents.reduce((sum, e) => sum + e.energy, 0) /
+            windowEvents.length
           : 0;
       const climaxCount = windowEvents.filter((e) => e.isClimax).length;
 
@@ -80,7 +84,7 @@ export class SectionDetector {
         avgEnergy,
         eventCount: windowEvents.length,
         climaxCount,
-        trend: 'stable',
+        trend: "stable",
       });
     }
 
@@ -97,11 +101,11 @@ export class SectionDetector {
       const diff = curr.avgEnergy - prev.avgEnergy;
 
       if (diff > 0.1) {
-        curr.trend = 'rising';
+        curr.trend = "rising";
       } else if (diff < -0.1) {
-        curr.trend = 'falling';
+        curr.trend = "falling";
       } else {
-        curr.trend = 'stable';
+        curr.trend = "stable";
       }
     }
   }
@@ -109,14 +113,18 @@ export class SectionDetector {
   /**
    * Classify windows into section types
    */
-  private classifyWindows(windows: AnalysisWindow[], duration: number): MusicSection[] {
+  private classifyWindows(
+    windows: AnalysisWindow[],
+    duration: number,
+  ): MusicSection[] {
     const sections: MusicSection[] = [];
 
     // Calculate global thresholds
     const allEnergies = windows.map((w) => w.avgEnergy).filter((e) => e > 0);
-    const avgEnergy = allEnergies.length > 0
-      ? allEnergies.reduce((a, b) => a + b, 0) / allEnergies.length
-      : 0.5;
+    const avgEnergy =
+      allEnergies.length > 0
+        ? allEnergies.reduce((a, b) => a + b, 0) / allEnergies.length
+        : 0.5;
     const maxEnergy = Math.max(...allEnergies, 0.5);
 
     const highThreshold = avgEnergy + (maxEnergy - avgEnergy) * 0.5;
@@ -128,22 +136,22 @@ export class SectionDetector {
 
       // Determine section type based on energy and patterns
       if (climaxCount > 2 || energy > highThreshold * 0.95) {
-        type = 'climax';
+        type = "climax";
       } else if (energy > highThreshold * 0.7 && eventCount > 5) {
-        type = 'chorus';
-      } else if (trend === 'rising' && energy > avgEnergy * 0.8) {
-        type = 'prechorus';
+        type = "chorus";
+      } else if (trend === "rising" && energy > avgEnergy * 0.8) {
+        type = "prechorus";
       } else if (energy < lowThreshold || eventCount < 2) {
         // Check position for intro/outro
         if (window.startTime < duration * 0.15) {
-          type = 'intro';
+          type = "intro";
         } else if (window.endTime > duration * 0.85) {
-          type = 'outro';
+          type = "outro";
         } else {
-          type = 'bridge';
+          type = "bridge";
         }
       } else {
-        type = 'verse';
+        type = "verse";
       }
 
       sections.push(
@@ -152,8 +160,8 @@ export class SectionDetector {
           window.startTime,
           window.endTime,
           energy,
-          eventCount / this.windowSize
-        )
+          eventCount / this.windowSize,
+        ),
       );
     }
 
@@ -191,7 +199,10 @@ export class SectionDetector {
   /**
    * Apply minimum duration constraints
    */
-  private applyMinDuration(sections: MusicSection[], duration: number): MusicSection[] {
+  private applyMinDuration(
+    sections: MusicSection[],
+    duration: number,
+  ): MusicSection[] {
     const result: MusicSection[] = [];
 
     for (const section of sections) {
@@ -210,7 +221,7 @@ export class SectionDetector {
 
     // Ensure we have at least one section
     if (result.length === 0) {
-      result.push(this.createSection('verse', 0, duration, 0.5, 0));
+      result.push(this.createSection("verse", 0, duration, 0.5, 0));
     }
 
     return result;
@@ -224,7 +235,7 @@ export class SectionDetector {
     startTime: number,
     endTime: number,
     energy: number,
-    density: number
+    density: number,
   ): MusicSection {
     return {
       type,
@@ -238,7 +249,10 @@ export class SectionDetector {
   /**
    * Get section at a specific time
    */
-  static getSectionAt(sections: MusicSection[], time: number): MusicSection | null {
+  static getSectionAt(
+    sections: MusicSection[],
+    time: number,
+  ): MusicSection | null {
     for (const section of sections) {
       if (time >= section.startTime && time < section.endTime) {
         return section;
@@ -253,7 +267,7 @@ export class SectionDetector {
   static isNearTransition(
     sections: MusicSection[],
     time: number,
-    threshold: number = 0.5
+    threshold: number = 0.5,
   ): boolean {
     for (const section of sections) {
       if (Math.abs(time - section.startTime) < threshold) {

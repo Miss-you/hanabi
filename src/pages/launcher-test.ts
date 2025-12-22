@@ -1,16 +1,16 @@
-import { FireworkType, VISUAL_CONFIG } from '@/core/types';
-import { Particle } from '@/core/Particle';
-import { Firework } from '@/core/Firework';
-import { random } from '@/utils/math';
-import '@/styles/main.css';
-import '@/styles/launcher-test.css';
+import { FireworkType, VISUAL_CONFIG } from "@/core/types";
+import { Particle } from "@/core/Particle";
+import { Firework } from "@/core/Firework";
+import { random } from "@/utils/math";
+import "@/styles/main.css";
+import "@/styles/launcher-test.css";
 
-type DistributionType = 'center' | 'spread' | 'random';
+type DistributionType = "center" | "spread" | "random";
 
 interface LaunchConfig {
   launchX: number; // percentage 0-100
   targetY: number; // percentage 0-100
-  type: FireworkType | 'random';
+  type: FireworkType | "random";
   salvoCount: number;
   salvoDelay: number;
   distribution: DistributionType;
@@ -23,10 +23,10 @@ class LauncherTest {
   private config: LaunchConfig = {
     launchX: 50,
     targetY: 25,
-    type: 'kiku',
+    type: "kiku",
     salvoCount: 5,
     salvoDelay: 50,
-    distribution: 'spread',
+    distribution: "spread",
     energy: 0.5,
   };
   private particles: Particle[] = [];
@@ -35,9 +35,9 @@ class LauncherTest {
   private height: number = 0;
 
   constructor() {
-    this.canvas = document.getElementById('canvas') as HTMLCanvasElement;
-    const ctx = this.canvas.getContext('2d');
-    if (!ctx) throw new Error('Cannot get canvas context');
+    this.canvas = document.getElementById("canvas") as HTMLCanvasElement;
+    const ctx = this.canvas.getContext("2d");
+    if (!ctx) throw new Error("Cannot get canvas context");
     this.ctx = ctx;
 
     this.setupCanvas();
@@ -46,7 +46,9 @@ class LauncherTest {
   }
 
   private setupCanvas(): void {
-    const container = document.querySelector('.canvas-container') as HTMLElement | null;
+    const container = document.querySelector(
+      ".canvas-container",
+    ) as HTMLElement | null;
     if (!container) return;
 
     const resize = () => {
@@ -64,29 +66,29 @@ class LauncherTest {
     };
 
     resize();
-    window.addEventListener('resize', () => {
+    window.addEventListener("resize", () => {
       this.ctx.setTransform(1, 0, 0, 1, 0, 0);
       resize();
     });
 
     // Canvas click to set position
-    const crosshair = document.getElementById('crosshair');
-    container.addEventListener('mousemove', (e) => {
+    const crosshair = document.getElementById("crosshair");
+    container.addEventListener("mousemove", (e) => {
       const rect = container.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
       if (crosshair) {
-        crosshair.style.display = 'block';
+        crosshair.style.display = "block";
         crosshair.style.left = `${x}px`;
         crosshair.style.top = `${y}px`;
       }
     });
 
-    container.addEventListener('mouseleave', () => {
-      if (crosshair) crosshair.style.display = 'none';
+    container.addEventListener("mouseleave", () => {
+      if (crosshair) crosshair.style.display = "none";
     });
 
-    container.addEventListener('click', (e) => {
+    container.addEventListener("click", (e) => {
       const rect = container.getBoundingClientRect();
       const x = ((e.clientX - rect.left) / rect.width) * 100;
       const y = ((e.clientY - rect.top) / rect.height) * 100;
@@ -95,10 +97,16 @@ class LauncherTest {
       this.config.targetY = Math.max(10, Math.min(60, y));
 
       // Update UI
-      (document.getElementById('launchX') as HTMLInputElement).value = String(this.config.launchX);
-      (document.getElementById('targetY') as HTMLInputElement).value = String(this.config.targetY);
-      document.getElementById('launchXVal')!.textContent = `${Math.round(this.config.launchX)}%`;
-      document.getElementById('targetYVal')!.textContent = `${Math.round(this.config.targetY)}%`;
+      (document.getElementById("launchX") as HTMLInputElement).value = String(
+        this.config.launchX,
+      );
+      (document.getElementById("targetY") as HTMLInputElement).value = String(
+        this.config.targetY,
+      );
+      document.getElementById("launchXVal")!.textContent =
+        `${Math.round(this.config.launchX)}%`;
+      document.getElementById("targetYVal")!.textContent =
+        `${Math.round(this.config.targetY)}%`;
 
       // Launch on click
       this.launchSingle();
@@ -107,54 +115,88 @@ class LauncherTest {
 
   private setupControls(): void {
     // Range inputs
-    this.bindRangeInput('launchX', 'launchXVal', (v) => (this.config.launchX = v), '%');
-    this.bindRangeInput('targetY', 'targetYVal', (v) => (this.config.targetY = v), '%');
-    this.bindRangeInput('salvoCount', 'salvoCountVal', (v) => (this.config.salvoCount = v));
-    this.bindRangeInput('salvoDelay', 'salvoDelayVal', (v) => (this.config.salvoDelay = v), 'ms');
-    this.bindRangeInput('energy', 'energyVal', (v) => (this.config.energy = v));
+    this.bindRangeInput(
+      "launchX",
+      "launchXVal",
+      (v) => (this.config.launchX = v),
+      "%",
+    );
+    this.bindRangeInput(
+      "targetY",
+      "targetYVal",
+      (v) => (this.config.targetY = v),
+      "%",
+    );
+    this.bindRangeInput(
+      "salvoCount",
+      "salvoCountVal",
+      (v) => (this.config.salvoCount = v),
+    );
+    this.bindRangeInput(
+      "salvoDelay",
+      "salvoDelayVal",
+      (v) => (this.config.salvoDelay = v),
+      "ms",
+    );
+    this.bindRangeInput("energy", "energyVal", (v) => (this.config.energy = v));
 
     // Type buttons
-    document.querySelectorAll('.type-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.type-btn').forEach((b) => b.classList.remove('active'));
-        btn.classList.add('active');
-        this.config.type = btn.getAttribute('data-type') as FireworkType | 'random';
+    document.querySelectorAll(".type-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document
+          .querySelectorAll(".type-btn")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        this.config.type = btn.getAttribute("data-type") as
+          | FireworkType
+          | "random";
       });
     });
 
     // Distribution select
-    const distribution = document.getElementById('distribution') as HTMLSelectElement;
-    distribution?.addEventListener('change', () => {
+    const distribution = document.getElementById(
+      "distribution",
+    ) as HTMLSelectElement;
+    distribution?.addEventListener("change", () => {
       this.config.distribution = distribution.value as DistributionType;
     });
 
     // Buttons
-    document.getElementById('singleBtn')?.addEventListener('click', () => this.launchSingle());
-    document.getElementById('salvoBtn')?.addEventListener('click', () => this.launchSalvo());
-    document.getElementById('clearBtn')?.addEventListener('click', () => this.clear());
+    document
+      .getElementById("singleBtn")
+      ?.addEventListener("click", () => this.launchSingle());
+    document
+      .getElementById("salvoBtn")
+      ?.addEventListener("click", () => this.launchSalvo());
+    document
+      .getElementById("clearBtn")
+      ?.addEventListener("click", () => this.clear());
   }
 
   private bindRangeInput(
     id: string,
     valueId: string,
     onChange: (value: number) => void,
-    suffix: string = ''
+    suffix: string = "",
   ): void {
     const input = document.getElementById(id) as HTMLInputElement;
     const valueEl = document.getElementById(valueId);
 
-    input?.addEventListener('input', () => {
+    input?.addEventListener("input", () => {
       const value = parseFloat(input.value);
       onChange(value);
       if (valueEl) {
-        valueEl.textContent = suffix === '%' ? `${Math.round(value)}${suffix}` : `${value.toFixed(2)}${suffix}`;
+        valueEl.textContent =
+          suffix === "%"
+            ? `${Math.round(value)}${suffix}`
+            : `${value.toFixed(2)}${suffix}`;
       }
     });
   }
 
   private getFireworkType(): FireworkType {
-    if (this.config.type === 'random') {
-      const types: FireworkType[] = ['kiku', 'willow', 'botan'];
+    if (this.config.type === "random") {
+      const types: FireworkType[] = ["kiku", "willow", "botan"];
       return types[Math.floor(Math.random() * types.length)]!;
     }
     return this.config.type;
@@ -174,7 +216,7 @@ class LauncherTest {
       this.height,
       this.width,
       { onExplode: (particles) => this.particles.push(...particles) },
-      this.config.energy
+      this.config.energy,
     );
 
     this.fireworks.push(fw);
@@ -189,20 +231,21 @@ class LauncherTest {
         const baseX = (this.config.launchX / 100) * this.width;
 
         switch (distribution) {
-          case 'center':
+          case "center":
             x = baseX + random(-30, 30);
             break;
-          case 'spread':
+          case "spread":
             x = this.width * (0.1 + (0.8 * i) / (salvoCount - 1 || 1));
             break;
-          case 'random':
+          case "random":
             x = random(this.width * 0.1, this.width * 0.9);
             break;
           default:
             x = baseX;
         }
 
-        const targetY = (this.config.targetY / 100) * this.height + random(-50, 50);
+        const targetY =
+          (this.config.targetY / 100) * this.height + random(-50, 50);
         const hue = random(0, 360);
         const type = this.getFireworkType();
 
@@ -214,7 +257,7 @@ class LauncherTest {
           this.height,
           this.width,
           { onExplode: (particles) => this.particles.push(...particles) },
-          this.config.energy
+          this.config.energy,
         );
 
         this.fireworks.push(fw);
@@ -247,8 +290,12 @@ class LauncherTest {
     }
 
     // Update stats
-    document.getElementById('particleCount')!.textContent = String(this.particles.length);
-    document.getElementById('fireworkCount')!.textContent = String(this.fireworks.length);
+    document.getElementById("particleCount")!.textContent = String(
+      this.particles.length,
+    );
+    document.getElementById("fireworkCount")!.textContent = String(
+      this.fireworks.length,
+    );
   }
 
   private draw(): void {
@@ -256,7 +303,7 @@ class LauncherTest {
 
     // Background
     ctx.globalAlpha = 1;
-    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalCompositeOperation = "source-over";
 
     const grad = ctx.createLinearGradient(0, 0, 0, height);
     grad.addColorStop(0, VISUAL_CONFIG.SKY_GRADIENT_TOP);
@@ -265,14 +312,14 @@ class LauncherTest {
     ctx.fillRect(0, 0, width, height);
 
     // Trail fade
-    ctx.fillStyle = 'rgba(0, 5, 20, 0.2)';
+    ctx.fillStyle = "rgba(0, 5, 20, 0.2)";
     ctx.fillRect(0, 0, width, height);
 
     // Draw target indicator
     const targetX = (this.config.launchX / 100) * width;
     const targetY = (this.config.targetY / 100) * height;
     ctx.globalAlpha = 0.3;
-    ctx.strokeStyle = '#fff';
+    ctx.strokeStyle = "#fff";
     ctx.setLineDash([5, 5]);
     ctx.beginPath();
     ctx.moveTo(targetX, height);
@@ -284,7 +331,7 @@ class LauncherTest {
     ctx.setLineDash([]);
 
     // Draw fireworks and particles
-    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalCompositeOperation = "lighter";
 
     for (const fw of this.fireworks) {
       fw.draw(ctx);
@@ -295,11 +342,11 @@ class LauncherTest {
     }
 
     // Water
-    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalCompositeOperation = "source-over";
     const waterY = height * (1 - VISUAL_CONFIG.WATER_HEIGHT_RATIO);
     const waterGrad = ctx.createLinearGradient(0, waterY, 0, height);
-    waterGrad.addColorStop(0, 'rgba(0, 5, 20, 0.6)');
-    waterGrad.addColorStop(1, '#000');
+    waterGrad.addColorStop(0, "rgba(0, 5, 20, 0.6)");
+    waterGrad.addColorStop(1, "#000");
     ctx.fillStyle = waterGrad;
     ctx.fillRect(0, waterY, width, height - waterY);
   }

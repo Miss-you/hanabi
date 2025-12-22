@@ -1,15 +1,15 @@
-import { Renderer } from '@/engine/Renderer';
-import { ParticleSystem } from '@/engine/ParticleSystem';
-import { FireworkLauncher } from '@/engine/FireworkLauncher';
-import { AudioAnalyzer } from '@/audio/AudioAnalyzer';
-import { FrequencyAnalyzer } from '@/audio/FrequencyAnalyzer';
-import { BeatDetector } from '@/audio/BeatDetector';
-import { Timeline } from '@/audio/Timeline';
-import { Choreographer } from '@/choreography/Choreographer';
-import { FireworkType } from '@/core/types';
-import './styles/main.css';
+import { Renderer } from "@/engine/Renderer";
+import { ParticleSystem } from "@/engine/ParticleSystem";
+import { FireworkLauncher } from "@/engine/FireworkLauncher";
+import { AudioAnalyzer } from "@/audio/AudioAnalyzer";
+import { FrequencyAnalyzer } from "@/audio/FrequencyAnalyzer";
+import { BeatDetector } from "@/audio/BeatDetector";
+import { Timeline } from "@/audio/Timeline";
+import { Choreographer } from "@/choreography/Choreographer";
+import { FireworkType } from "@/core/types";
+import "./styles/main.css";
 
-type AppMode = 'idle' | 'demo' | 'music';
+type AppMode = "idle" | "demo" | "music";
 
 class HanabiApp {
   private renderer: Renderer;
@@ -21,21 +21,21 @@ class HanabiApp {
   private choreographer: Choreographer;
   private timeline: Timeline;
 
-  private mode: AppMode = 'idle';
+  private mode: AppMode = "idle";
   private isPaused: boolean = false;
   private demoTimer: number = 0;
   private audioBuffer: AudioBuffer | null = null;
 
   constructor() {
-    const canvas = document.getElementById('canvas') as HTMLCanvasElement;
-    if (!canvas) throw new Error('Canvas not found');
+    const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+    if (!canvas) throw new Error("Canvas not found");
 
     this.renderer = new Renderer(canvas);
     this.particleSystem = new ParticleSystem();
     this.launcher = new FireworkLauncher(
       this.renderer.width,
       this.renderer.height,
-      (particles) => this.particleSystem.add(particles)
+      (particles) => this.particleSystem.add(particles),
     );
     this.audioAnalyzer = new AudioAnalyzer(this.renderer.height);
     this.frequencyAnalyzer = new FrequencyAnalyzer();
@@ -54,40 +54,42 @@ class HanabiApp {
   }
 
   private setupEventListeners(): void {
-    const demoBtn = document.getElementById('demoBtn');
-    const pauseBtn = document.getElementById('pauseBtn');
-    const audioInput = document.getElementById('audioInput') as HTMLInputElement;
+    const demoBtn = document.getElementById("demoBtn");
+    const pauseBtn = document.getElementById("pauseBtn");
+    const audioInput = document.getElementById(
+      "audioInput",
+    ) as HTMLInputElement;
 
-    demoBtn?.addEventListener('click', () => this.startDemo());
-    pauseBtn?.addEventListener('click', () => this.togglePause());
-    audioInput?.addEventListener('change', (e) => this.handleAudioUpload(e));
+    demoBtn?.addEventListener("click", () => this.startDemo());
+    pauseBtn?.addEventListener("click", () => this.togglePause());
+    audioInput?.addEventListener("change", (e) => this.handleAudioUpload(e));
   }
 
   private setupResize(): void {
-    window.addEventListener('resize', () => {
+    window.addEventListener("resize", () => {
       this.launcher.resize(this.renderer.width, this.renderer.height);
       this.audioAnalyzer.resize(this.renderer.height);
     });
   }
 
   private startDemo(): void {
-    this.mode = 'demo';
+    this.mode = "demo";
     this.demoTimer = 0;
     this.timeline.stop();
-    this.setStatus('模式: 演示 (自动编排)');
+    this.setStatus("模式: 演示 (自动编排)");
   }
 
   private togglePause(): void {
-    if (this.mode === 'idle') return;
+    if (this.mode === "idle") return;
 
-    const pauseBtn = document.getElementById('pauseBtn');
+    const pauseBtn = document.getElementById("pauseBtn");
     if (this.isPaused) {
       this.isPaused = false;
-      if (pauseBtn) pauseBtn.textContent = '暂停';
+      if (pauseBtn) pauseBtn.textContent = "暂停";
       this.timeline.resume();
     } else {
       this.isPaused = true;
-      if (pauseBtn) pauseBtn.textContent = '继续';
+      if (pauseBtn) pauseBtn.textContent = "继续";
       this.timeline.pause();
     }
   }
@@ -97,8 +99,8 @@ class HanabiApp {
     const file = input.files?.[0];
     if (!file) return;
 
-    this.mode = 'music';
-    this.setStatus('加载音频中...');
+    this.mode = "music";
+    this.setStatus("加载音频中...");
 
     try {
       const arrayBuffer = await file.arrayBuffer();
@@ -107,7 +109,7 @@ class HanabiApp {
       const duration = this.audioBuffer.duration;
 
       // Step 1: Basic audio analysis for events
-      this.setStatus('分析音频事件... (1/3)');
+      this.setStatus("分析音频事件... (1/3)");
       const result = await this.audioAnalyzer.analyze(this.audioBuffer, {
         onProgress: (p) => {
           this.setStatus(`分析事件: ${Math.round(p * 100)}%`);
@@ -115,15 +117,15 @@ class HanabiApp {
       });
 
       // Step 2: Frequency band analysis
-      this.setStatus('分析频率特征... (2/3)');
+      this.setStatus("分析频率特征... (2/3)");
       const freqBands = await this.frequencyAnalyzer.analyze(this.audioBuffer);
 
       // Step 3: Beat detection
-      this.setStatus('检测节拍... (3/3)');
+      this.setStatus("检测节拍... (3/3)");
       const beatInfo = this.beatDetector.detectBeats(freqBands.bass, duration);
 
       // Prepare choreographer with all analysis data
-      this.setStatus('准备编排...');
+      this.setStatus("准备编排...");
       this.choreographer.prepareTrack({
         events: result.timeline,
         beatInfo,
@@ -136,14 +138,14 @@ class HanabiApp {
 
       // Display stats
       const stats = this.choreographer.getStats();
-      console.log('[HanabiApp] Choreography ready:', stats);
+      console.log("[HanabiApp] Choreography ready:", stats);
       this.setStatus(`正在播放: ${file.name} | BPM: ${Math.round(stats.bpm)}`);
 
       await this.timeline.play(this.audioBuffer);
     } catch (error) {
-      console.error('Audio loading failed:', error);
-      this.setStatus('音频加载失败');
-      this.mode = 'idle';
+      console.error("Audio loading failed:", error);
+      this.setStatus("音频加载失败");
+      this.mode = "idle";
     }
   }
 
@@ -159,11 +161,11 @@ class HanabiApp {
       const type: FireworkType =
         this.demoTimer > 900
           ? Math.random() > 0.5
-            ? 'willow'
-            : 'kiku'
+            ? "willow"
+            : "kiku"
           : this.demoTimer > 300
-            ? 'kiku'
-            : 'botan';
+            ? "kiku"
+            : "botan";
       this.launcher.launch(type);
     }
 
@@ -171,7 +173,7 @@ class HanabiApp {
   }
 
   private setStatus(text: string): void {
-    const status = document.getElementById('status');
+    const status = document.getElementById("status");
     if (status) status.textContent = text;
   }
 
@@ -184,9 +186,9 @@ class HanabiApp {
     this.renderer.drawBackground();
 
     // Mode logic
-    if (this.mode === 'music') {
+    if (this.mode === "music") {
       this.timeline.update();
-    } else if (this.mode === 'demo') {
+    } else if (this.mode === "demo") {
       this.runDemoLogic();
     }
 

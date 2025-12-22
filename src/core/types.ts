@@ -1,5 +1,5 @@
 /** Firework explosion types */
-export type FireworkType = 'kiku' | 'willow' | 'botan' | 'piano';
+export type FireworkType = "kiku" | "willow" | "botan" | "piano";
 
 /** Particle configuration based on firework type */
 export interface ParticleConfig {
@@ -59,7 +59,7 @@ export interface TrailPoint extends Point {
 }
 
 /** Audio timeline event types */
-export type AudioEventType = 'bass' | 'mid' | 'piano' | 'climax';
+export type AudioEventType = "bass" | "mid" | "piano" | "climax";
 
 /** Audio analysis event */
 export interface AudioEvent {
@@ -73,8 +73,8 @@ export interface AudioEvent {
 
 /** Visual configuration constants */
 export const VISUAL_CONFIG = {
-  SKY_GRADIENT_TOP: '#020514',
-  SKY_GRADIENT_BOTTOM: '#182042',
+  SKY_GRADIENT_TOP: "#020514",
+  SKY_GRADIENT_BOTTOM: "#182042",
   WATER_HEIGHT_RATIO: 0.2,
   REFLECTION_ALPHA: 0.3,
 } as const;
@@ -110,26 +110,26 @@ export interface FireworkOptions {
 
 /** Pattern types for artistic firework displays */
 export type PatternType =
-  | 'single'    // 单发
-  | 'salvo'     // 齐射
-  | 'cascade'   // 瀑布流
-  | 'symmetric' // 对称双发
-  | 'rising'    // 升序阶梯
-  | 'pulse'     // 节拍脉冲
-  | 'cluster'   // 聚簇爆发
-  | 'cross'     // 交叉对角
-  | 'scatter'   // 稀疏散点
-  | 'finale';   // 大结局
+  | "single" // 单发
+  | "salvo" // 齐射
+  | "cascade" // 瀑布流
+  | "symmetric" // 对称双发
+  | "rising" // 升序阶梯
+  | "pulse" // 节拍脉冲
+  | "cluster" // 聚簇爆发
+  | "cross" // 交叉对角
+  | "scatter" // 稀疏散点
+  | "finale"; // 大结局
 
 /** Music section types */
 export type SectionType =
-  | 'intro'
-  | 'verse'
-  | 'prechorus'
-  | 'chorus'
-  | 'bridge'
-  | 'climax'
-  | 'outro';
+  | "intro"
+  | "verse"
+  | "prechorus"
+  | "chorus"
+  | "bridge"
+  | "climax"
+  | "outro";
 
 /** Music section detected from audio */
 export interface MusicSection {
@@ -149,7 +149,7 @@ export interface LaunchCommand {
     x?: number;
     hue?: number;
     type?: FireworkType;
-    direction?: 'left' | 'right' | 'center' | 'outward';
+    direction?: "left" | "right" | "center" | "outward";
     spread?: number;
     interval?: number;
     energy?: number;

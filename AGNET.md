@@ -13,6 +13,19 @@ Hanabi-TS 是基于 TypeScript + Vite 的音频驱动烟花可视化系统，核
 - `npm run build` / `npm run preview`（生产构建与预览）
 - `npm run lint` / `npm run format`
 
+## 环境与依赖约定
+
+- Node.js >= 18（建议 20 LTS），避免团队成员版本漂移。
+- 统一使用 npm，`package-lock.json` 为依赖版本唯一来源。
+- `node_modules` 仅本地存在，不提交代码库（`.gitignore` 已忽略）。
+- 干净环境/CI 使用 `npm ci`，保证可复现安装。
+
+## 复用与拆分建议
+
+- 多项目需要复用时，优先使用 workspaces 拆分共享模块。
+- 需要跨仓库复用时，抽为独立 npm 包（私有或公有）。
+- `file:` 依赖或 `npm link` 仅用于本地调试阶段。
+
 ## 关键模块与职责
 
 - `src/main.ts`: 应用入口，串联渲染器、音频分析、编排器与时间线。
@@ -30,6 +43,7 @@ Hanabi-TS 是基于 TypeScript + Vite 的音频驱动烟花可视化系统，核
 - 编排规则优先通过 `src/choreography/RuleEngine.ts` 调整；表现形式集中在 `PatternLibrary.ts`。
 - 音频分析阈值为硬编码参数，调整后记录到 `docs/development-log.md`。
 - 新增调试页需补齐三处：`pages/<name>/index.html`、`src/pages/<name>.ts`、`src/styles/<name>.css`，并更新 `vite.config.ts`。
+- 依赖变动需同步更新 `package-lock.json`，避免混用包管理器。
 
 ## 验证清单
 

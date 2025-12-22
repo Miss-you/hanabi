@@ -25,10 +25,7 @@ export class BeatDetector {
   /**
    * Detect beats from bass energy curve
    */
-  detectBeats(
-    bassEnergy: Float32Array,
-    duration: number
-  ): BeatInfo {
+  detectBeats(bassEnergy: Float32Array, duration: number): BeatInfo {
     // 1. Find onsets (sudden increases in energy)
     const onsets = this.detectOnsets(bassEnergy);
 
@@ -91,7 +88,7 @@ export class BeatDetector {
    */
   private estimateTempo(
     onsets: number[],
-    _duration: number
+    _duration: number,
   ): { bpm: number; confidence: number } {
     if (onsets.length < 4) {
       return { bpm: 120, confidence: 0 }; // Default fallback
@@ -149,7 +146,7 @@ export class BeatDetector {
   private generateBeatGrid(
     onsets: number[],
     beatInterval: number,
-    duration: number
+    duration: number,
   ): number[] {
     const beats: number[] = [];
 
@@ -184,7 +181,11 @@ export class BeatDetector {
   /**
    * Get beat number (1-4) for a given time
    */
-  static getBeatNumber(time: number, beatInterval: number, offset: number = 0): number {
+  static getBeatNumber(
+    time: number,
+    beatInterval: number,
+    offset: number = 0,
+  ): number {
     const beatIndex = Math.floor((time - offset) / beatInterval);
     return (beatIndex % 4) + 1;
   }
@@ -192,7 +193,11 @@ export class BeatDetector {
   /**
    * Check if a time is on a beat
    */
-  static isOnBeat(time: number, beats: number[], tolerance: number = 0.05): boolean {
+  static isOnBeat(
+    time: number,
+    beats: number[],
+    tolerance: number = 0.05,
+  ): boolean {
     for (const beat of beats) {
       if (Math.abs(time - beat) < tolerance) {
         return true;

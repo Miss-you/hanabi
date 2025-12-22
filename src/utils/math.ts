@@ -50,7 +50,7 @@ export function mapRange(
   inMin: number,
   inMax: number,
   outMin: number,
-  outMax: number
+  outMax: number,
 ): number {
   return ((value - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
 }
@@ -62,7 +62,7 @@ export function mapRange(
 export function calculateLaunchParams(
   screenHeight: number,
   targetYRatio: number,
-  gravity: number = 0.25
+  gravity: number = 0.25,
 ): { duration: number; targetY: number } {
   const targetY = screenHeight * targetYRatio;
   const dist = screenHeight - targetY;

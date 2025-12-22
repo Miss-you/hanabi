@@ -4,8 +4,8 @@ import {
   PARTICLE_CONFIGS,
   Point,
   VISUAL_CONFIG,
-} from './types';
-import { random } from '@/utils/math';
+} from "./types";
+import { random } from "@/utils/math";
 
 /**
  * Particle class representing a single firework particle
@@ -31,7 +31,7 @@ export class Particle {
     y: number,
     color: string,
     type: FireworkType,
-    config?: Partial<ParticleConfig>
+    config?: Partial<ParticleConfig>,
   ) {
     this.x = x;
     this.y = y;
@@ -98,13 +98,13 @@ export class Particle {
       // Fallback for single point
       ctx.fillStyle = this.color;
       ctx.beginPath();
-      ctx.arc(this.x, this.y, this.type === 'willow' ? 1.5 : 2, 0, Math.PI * 2);
+      ctx.arc(this.x, this.y, this.type === "willow" ? 1.5 : 2, 0, Math.PI * 2);
       ctx.fill();
     }
 
     // Shimmer effect for willow
-    if (this.type === 'willow' && Math.random() > 0.8) {
-      ctx.fillStyle = '#fff';
+    if (this.type === "willow" && Math.random() > 0.8) {
+      ctx.fillStyle = "#fff";
       ctx.beginPath();
       ctx.arc(this.x, this.y, 1, 0, Math.PI * 2);
       ctx.fill();
@@ -119,17 +119,18 @@ export class Particle {
    */
   private drawReflection(
     ctx: CanvasRenderingContext2D,
-    screenHeight: number
+    screenHeight: number,
   ): void {
     const horizon = screenHeight * (1 - VISUAL_CONFIG.WATER_HEIGHT_RATIO);
 
     if (this.y < horizon) {
       const refY = horizon + (horizon - this.y);
       if (refY < screenHeight) {
-        ctx.globalAlpha = Math.max(0, this.alpha) * VISUAL_CONFIG.REFLECTION_ALPHA;
+        ctx.globalAlpha =
+          Math.max(0, this.alpha) * VISUAL_CONFIG.REFLECTION_ALPHA;
         ctx.fillStyle = this.color;
         ctx.beginPath();
-        ctx.arc(this.x, refY, this.type === 'willow' ? 1.5 : 2, 0, Math.PI * 2);
+        ctx.arc(this.x, refY, this.type === "willow" ? 1.5 : 2, 0, Math.PI * 2);
         ctx.fill();
       }
     }

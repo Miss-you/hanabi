@@ -1,9 +1,9 @@
-import { FireworkType } from '@/core/types';
-import { Particle } from '@/core/Particle';
-import { Firework } from '@/core/Firework';
-import { random } from '@/utils/math';
-import '@/styles/main.css';
-import '@/styles/firework-types.css';
+import { FireworkType } from "@/core/types";
+import { Particle } from "@/core/Particle";
+import { Firework } from "@/core/Firework";
+import { random } from "@/utils/math";
+import "@/styles/main.css";
+import "@/styles/firework-types.css";
 
 interface PanelState {
   canvas: HTMLCanvasElement;
@@ -27,12 +27,14 @@ class FireworkTypesDemo {
   }
 
   private initPanels(): void {
-    const panelElements = document.querySelectorAll('.firework-panel');
+    const panelElements = document.querySelectorAll(".firework-panel");
 
     panelElements.forEach((panel) => {
-      const type = panel.getAttribute('data-type') as FireworkType;
-      const canvas = panel.querySelector('.preview-canvas') as HTMLCanvasElement;
-      const ctx = canvas.getContext('2d');
+      const type = panel.getAttribute("data-type") as FireworkType;
+      const canvas = panel.querySelector(
+        ".preview-canvas",
+      ) as HTMLCanvasElement;
+      const ctx = canvas.getContext("2d");
       if (!ctx) return;
 
       // Set canvas size
@@ -51,15 +53,15 @@ class FireworkTypesDemo {
         params: {
           count: parseInt(
             panel.querySelector<HTMLInputElement>('[data-param="count"]')
-              ?.value || '100'
+              ?.value || "100",
           ),
           speed: parseInt(
             panel.querySelector<HTMLInputElement>('[data-param="speed"]')
-              ?.value || '5'
+              ?.value || "5",
           ),
           gravity: parseFloat(
             panel.querySelector<HTMLInputElement>('[data-param="gravity"]')
-              ?.value || '0.05'
+              ?.value || "0.05",
           ),
         },
       };
@@ -67,18 +69,19 @@ class FireworkTypesDemo {
       this.panels.set(type, state);
 
       // Launch button
-      panel.querySelector('.launch-btn')?.addEventListener('click', () => {
+      panel.querySelector(".launch-btn")?.addEventListener("click", () => {
         this.launchFirework(type);
       });
 
       // Parameter inputs
-      panel.querySelectorAll('input[data-param]').forEach((input) => {
-        input.addEventListener('input', (e) => {
+      panel.querySelectorAll("input[data-param]").forEach((input) => {
+        input.addEventListener("input", (e) => {
           const target = e.target as HTMLInputElement;
-          const param = target.getAttribute('data-param');
+          const param = target.getAttribute("data-param");
           if (param && param in state.params) {
-            (state.params as Record<string, number>)[param] =
-              parseFloat(target.value);
+            (state.params as Record<string, number>)[param] = parseFloat(
+              target.value,
+            );
           }
         });
       });
@@ -107,8 +110,7 @@ class FireworkTypesDemo {
           particles.forEach((p) => {
             const angle = Math.atan2(p.vy, p.vx);
             const baseSpeed =
-              Math.sqrt(p.vx * p.vx + p.vy * p.vy) *
-              (state.params.speed / 5);
+              Math.sqrt(p.vx * p.vx + p.vy * p.vy) * (state.params.speed / 5);
             p.vx = Math.cos(angle) * baseSpeed;
             p.vy = Math.sin(angle) * baseSpeed;
           });
@@ -118,7 +120,7 @@ class FireworkTypesDemo {
           state.particles.push(...limited);
         },
       },
-      0.5
+      0.5,
     );
 
     state.fireworks.push(fw);
@@ -150,14 +152,14 @@ class FireworkTypesDemo {
 
     // Clear
     ctx.globalAlpha = 1;
-    ctx.fillStyle = '#000';
+    ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, rect.width, rect.height);
 
     // Trail fade
-    ctx.fillStyle = 'rgba(0, 5, 20, 0.2)';
+    ctx.fillStyle = "rgba(0, 5, 20, 0.2)";
     ctx.fillRect(0, 0, rect.width, rect.height);
 
-    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalCompositeOperation = "lighter";
 
     // Draw fireworks
     for (const fw of state.fireworks) {
@@ -169,7 +171,7 @@ class FireworkTypesDemo {
       p.draw(ctx, rect.height);
     }
 
-    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalCompositeOperation = "source-over";
   }
 
   private loop = (): void => {

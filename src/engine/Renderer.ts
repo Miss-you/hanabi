@@ -1,4 +1,4 @@
-import { VISUAL_CONFIG } from '@/core/types';
+import { VISUAL_CONFIG } from "@/core/types";
 
 /**
  * Canvas renderer for firework visualization
@@ -13,12 +13,12 @@ export class Renderer {
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) throw new Error('Failed to get 2D context');
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Failed to get 2D context");
     this.ctx = ctx;
 
     this.resize();
-    window.addEventListener('resize', () => this.resize());
+    window.addEventListener("resize", () => this.resize());
   }
 
   /**
@@ -49,7 +49,7 @@ export class Renderer {
    */
   drawBackground(): void {
     this.ctx.globalAlpha = 1;
-    this.ctx.globalCompositeOperation = 'source-over';
+    this.ctx.globalCompositeOperation = "source-over";
 
     // Sky gradient
     const grad = this.ctx.createLinearGradient(0, 0, 0, this.height);
@@ -60,7 +60,7 @@ export class Renderer {
     this.ctx.fillRect(0, 0, this.width, this.height);
 
     // Trail fade effect
-    this.ctx.fillStyle = 'rgba(0, 5, 20, 0.2)';
+    this.ctx.fillStyle = "rgba(0, 5, 20, 0.2)";
     this.ctx.fillRect(0, 0, this.width, this.height);
   }
 
@@ -70,10 +70,10 @@ export class Renderer {
   drawWater(): void {
     const waterY = this.height * (1 - VISUAL_CONFIG.WATER_HEIGHT_RATIO);
 
-    this.ctx.globalCompositeOperation = 'source-over';
+    this.ctx.globalCompositeOperation = "source-over";
     const waterGrad = this.ctx.createLinearGradient(0, waterY, 0, this.height);
-    waterGrad.addColorStop(0, 'rgba(0, 5, 20, 0.6)');
-    waterGrad.addColorStop(1, '#000');
+    waterGrad.addColorStop(0, "rgba(0, 5, 20, 0.6)");
+    waterGrad.addColorStop(1, "#000");
 
     this.ctx.fillStyle = waterGrad;
     this.ctx.fillRect(0, waterY, this.width, this.height - waterY);
@@ -83,14 +83,14 @@ export class Renderer {
    * Set composite operation for additive blending
    */
   setLighterBlend(): void {
-    this.ctx.globalCompositeOperation = 'lighter';
+    this.ctx.globalCompositeOperation = "lighter";
   }
 
   /**
    * Reset composite operation
    */
   resetBlend(): void {
-    this.ctx.globalCompositeOperation = 'source-over';
+    this.ctx.globalCompositeOperation = "source-over";
   }
 
   /**

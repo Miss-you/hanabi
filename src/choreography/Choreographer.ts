@@ -1,10 +1,10 @@
-import { AudioEvent, MusicSection, LaunchCommand } from '@/core/types';
-import { BeatInfo } from '@/audio/BeatDetector';
-import { FrequencyBands } from '@/audio/FrequencyAnalyzer';
-import { FireworkLauncher } from '@/engine/FireworkLauncher';
-import { PatternLibrary } from './PatternLibrary';
-import { SectionDetector } from './SectionDetector';
-import { RuleEngine, MusicContext } from './RuleEngine';
+import { AudioEvent, MusicSection, LaunchCommand } from "@/core/types";
+import { BeatInfo } from "@/audio/BeatDetector";
+import { FrequencyBands } from "@/audio/FrequencyAnalyzer";
+import { FireworkLauncher } from "@/engine/FireworkLauncher";
+import { PatternLibrary } from "./PatternLibrary";
+import { SectionDetector } from "./SectionDetector";
+import { RuleEngine, MusicContext } from "./RuleEngine";
 
 /**
  * Input data for preparing a track
@@ -74,7 +74,9 @@ export class Choreographer {
    * Analyzes the music and pre-computes section structure
    */
   prepareTrack(data: TrackData): void {
-    this.events = [...data.events].sort((a, b) => a.explodeTime - b.explodeTime);
+    this.events = [...data.events].sort(
+      (a, b) => a.explodeTime - b.explodeTime,
+    );
     this.beatInfo = data.beatInfo;
     this.duration = data.duration;
 
@@ -84,13 +86,13 @@ export class Choreographer {
     // Reset playback state
     this.reset();
 
-    console.log('[Choreographer] Track prepared:', {
+    console.log("[Choreographer] Track prepared:", {
       events: this.events.length,
       sections: this.sections.length,
       bpm: this.beatInfo.bpm,
       duration: this.duration,
     });
-    console.log('[Choreographer] Detected sections:', this.sections);
+    console.log("[Choreographer] Detected sections:", this.sections);
   }
 
   /**
@@ -126,7 +128,7 @@ export class Choreographer {
 
     // Clean up old recent events
     this.recentEvents = this.recentEvents.filter(
-      (e) => currentTime - e.explodeTime < this.recentEventsWindow
+      (e) => currentTime - e.explodeTime < this.recentEventsWindow,
     );
   }
 
@@ -200,7 +202,7 @@ export class Choreographer {
 
     // Clean up old launch records
     this.recentLaunches = this.recentLaunches.filter(
-      (t) => now - t < this.launchTrackingWindow
+      (t) => now - t < this.launchTrackingWindow,
     );
 
     // Check if we're in a sparse period
@@ -214,7 +216,7 @@ export class Choreographer {
       const boostFactor = 1 + (this.sparseThreshold - recentCount) * 0.15;
       const boostedEnergy = Math.max(
         this.minEnergyFloor,
-        adjustedParams.energy * boostFactor
+        adjustedParams.energy * boostFactor,
       );
       adjustedParams.energy = Math.min(1.0, boostedEnergy);
     } else if (isSparse && adjustedParams.energy === undefined) {
@@ -226,9 +228,17 @@ export class Choreographer {
     this.recentLaunches.push(now);
 
     try {
-      this.patternLibrary.execute(command.pattern, this.launcher, adjustedParams);
+      this.patternLibrary.execute(
+        command.pattern,
+        this.launcher,
+        adjustedParams,
+      );
     } catch (error) {
-      console.warn('[Choreographer] Failed to execute pattern:', command.pattern, error);
+      console.warn(
+        "[Choreographer] Failed to execute pattern:",
+        command.pattern,
+        error,
+      );
     }
   }
 
@@ -264,18 +274,21 @@ export class Choreographer {
    * Manually trigger a pattern (for testing or special effects)
    */
   triggerPattern(
-    pattern: LaunchCommand['pattern'],
-    params: Partial<LaunchCommand['params']> = {}
+    pattern: LaunchCommand["pattern"],
+    params: Partial<LaunchCommand["params"]> = {},
   ): void {
     if (!this.launcher) return;
 
-    const defaultParams: LaunchCommand['params'] = {
+    const defaultParams: LaunchCommand["params"] = {
       duration: 0,
       targetY: this.launcher.getScreenHeight() * 0.25,
       energy: 0.6,
     };
 
-    this.patternLibrary.execute(pattern, this.launcher, { ...defaultParams, ...params });
+    this.patternLibrary.execute(pattern, this.launcher, {
+      ...defaultParams,
+      ...params,
+    });
   }
 
   /**
@@ -290,7 +303,8 @@ export class Choreographer {
   } {
     const sectionBreakdown: Record<string, number> = {};
     for (const section of this.sections) {
-      sectionBreakdown[section.type] = (sectionBreakdown[section.type] || 0) + 1;
+      sectionBreakdown[section.type] =
+        (sectionBreakdown[section.type] || 0) + 1;
     }
 
     return {

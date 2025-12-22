@@ -1,4 +1,4 @@
-import { Particle } from '@/core/Particle';
+import { Particle } from "@/core/Particle";
 
 /**
  * Particle system manager for updating and rendering particles

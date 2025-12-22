@@ -1,7 +1,7 @@
-import { FireworkType, LaunchConfig } from '@/core/types';
-import { Firework } from '@/core/Firework';
-import { Particle } from '@/core/Particle';
-import { random, getDistributedX } from '@/utils/math';
+import { FireworkType, LaunchConfig } from "@/core/types";
+import { Firework } from "@/core/Firework";
+import { Particle } from "@/core/Particle";
+import { random, getDistributedX } from "@/utils/math";
 
 /**
  * FireworkLauncher manages firework creation and launching
@@ -15,7 +15,7 @@ export class FireworkLauncher {
   constructor(
     screenWidth: number,
     screenHeight: number,
-    onParticlesCreated: (particles: Particle[]) => void
+    onParticlesCreated: (particles: Particle[]) => void,
   ) {
     this.screenWidth = screenWidth;
     this.screenHeight = screenHeight;
@@ -45,10 +45,11 @@ export class FireworkLauncher {
     instant: boolean = false,
     targetY?: number,
     energy: number = 0.5,
-    x?: number
+    x?: number,
   ): void {
     const launchX = x ?? getDistributedX(this.screenWidth);
-    const tY = targetY ?? random(this.screenHeight * 0.1, this.screenHeight * 0.4);
+    const tY =
+      targetY ?? random(this.screenHeight * 0.1, this.screenHeight * 0.4);
     const hue = random(0, 360);
 
     const fw = new Firework(
@@ -59,7 +60,7 @@ export class FireworkLauncher {
       this.screenHeight,
       this.screenWidth,
       { onExplode: this.onParticlesCreated },
-      energy
+      energy,
     );
 
     if (instant) {
@@ -78,7 +79,7 @@ export class FireworkLauncher {
     targetY: number,
     energy: number,
     hue: number,
-    instant: boolean = false
+    instant: boolean = false,
   ): void {
     const fw = new Firework(
       x,
@@ -88,7 +89,7 @@ export class FireworkLauncher {
       this.screenHeight,
       this.screenWidth,
       { onExplode: this.onParticlesCreated },
-      energy
+      energy,
     );
 
     if (instant) {
@@ -111,7 +112,7 @@ export class FireworkLauncher {
             config.targetY,
             config.energy,
             config.hue,
-            config.instant
+            config.instant,
           );
         }, config.delay);
       } else {
@@ -121,7 +122,7 @@ export class FireworkLauncher {
           config.targetY,
           config.energy,
           config.hue,
-          config.instant
+          config.instant,
         );
       }
     }
@@ -135,10 +136,10 @@ export class FireworkLauncher {
       setTimeout(() => {
         const type: FireworkType =
           Math.random() > 0.4
-            ? 'willow'
+            ? "willow"
             : Math.random() > 0.5
-              ? 'kiku'
-              : 'botan';
+              ? "kiku"
+              : "botan";
         const instant = Math.random() > 0.9;
         const targetY = this.screenHeight * random(0.1, 0.5);
         this.launch(type, instant, targetY, random(0.3, 0.8));

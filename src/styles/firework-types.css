@@ -58,6 +58,6 @@ body {
   font-size: 12px;
 }
 
-.params input[type='range'] {
+.params input[type="range"] {
   flex: 1;
 }

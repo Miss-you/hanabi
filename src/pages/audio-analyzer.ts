@@ -1,9 +1,9 @@
-import { AudioAnalyzer, AnalysisResult } from '@/audio/AudioAnalyzer';
-import { FrequencyAnalyzer, FrequencyBands } from '@/audio/FrequencyAnalyzer';
-import { BeatDetector, BeatInfo } from '@/audio/BeatDetector';
-import { AudioEvent } from '@/core/types';
-import '@/styles/main.css';
-import '@/styles/audio-analyzer.css';
+import { AudioAnalyzer, AnalysisResult } from "@/audio/AudioAnalyzer";
+import { FrequencyAnalyzer, FrequencyBands } from "@/audio/FrequencyAnalyzer";
+import { BeatDetector, BeatInfo } from "@/audio/BeatDetector";
+import { AudioEvent } from "@/core/types";
+import "@/styles/main.css";
+import "@/styles/audio-analyzer.css";
 
 class AudioAnalyzerDemo {
   private audioAnalyzer: AudioAnalyzer;
@@ -39,11 +39,19 @@ class AudioAnalyzerDemo {
     this.beatDetector = new BeatDetector(30);
 
     // Get all canvases
-    this.spectrogramCanvas = document.getElementById('spectrogramCanvas') as HTMLCanvasElement;
-    this.bassCanvas = document.getElementById('bassCanvas') as HTMLCanvasElement;
-    this.midCanvas = document.getElementById('midCanvas') as HTMLCanvasElement;
-    this.highCanvas = document.getElementById('highCanvas') as HTMLCanvasElement;
-    this.beatCanvas = document.getElementById('beatCanvas') as HTMLCanvasElement;
+    this.spectrogramCanvas = document.getElementById(
+      "spectrogramCanvas",
+    ) as HTMLCanvasElement;
+    this.bassCanvas = document.getElementById(
+      "bassCanvas",
+    ) as HTMLCanvasElement;
+    this.midCanvas = document.getElementById("midCanvas") as HTMLCanvasElement;
+    this.highCanvas = document.getElementById(
+      "highCanvas",
+    ) as HTMLCanvasElement;
+    this.beatCanvas = document.getElementById(
+      "beatCanvas",
+    ) as HTMLCanvasElement;
 
     this.spectrogramCtx = this.getContext(this.spectrogramCanvas);
     this.bassCtx = this.getContext(this.bassCanvas);
@@ -57,13 +65,16 @@ class AudioAnalyzerDemo {
   }
 
   private getContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
-    const ctx = canvas.getContext('2d');
-    if (!ctx) throw new Error('Cannot get canvas context');
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Cannot get canvas context");
     return ctx;
   }
 
   private setupCanvases(): void {
-    const setupCanvas = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
+    const setupCanvas = (
+      canvas: HTMLCanvasElement,
+      ctx: CanvasRenderingContext2D,
+    ) => {
       const rect = canvas.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
       canvas.width = rect.width * dpr;
@@ -77,7 +88,7 @@ class AudioAnalyzerDemo {
     setupCanvas(this.highCanvas, this.highCtx);
     setupCanvas(this.beatCanvas, this.beatCtx);
 
-    window.addEventListener('resize', () => {
+    window.addEventListener("resize", () => {
       // Reset transforms and re-setup
       [
         { canvas: this.spectrogramCanvas, ctx: this.spectrogramCtx },
@@ -98,15 +109,17 @@ class AudioAnalyzerDemo {
   }
 
   private setupEventListeners(): void {
-    const audioInput = document.getElementById('audioInput') as HTMLInputElement;
-    const playBtn = document.getElementById('playBtn');
-    const stopBtn = document.getElementById('stopBtn');
-    const exportBtn = document.getElementById('exportBtn');
+    const audioInput = document.getElementById(
+      "audioInput",
+    ) as HTMLInputElement;
+    const playBtn = document.getElementById("playBtn");
+    const stopBtn = document.getElementById("stopBtn");
+    const exportBtn = document.getElementById("exportBtn");
 
-    audioInput?.addEventListener('change', (e) => this.handleFileUpload(e));
-    playBtn?.addEventListener('click', () => this.play());
-    stopBtn?.addEventListener('click', () => this.stop());
-    exportBtn?.addEventListener('click', () => this.exportJSON());
+    audioInput?.addEventListener("change", (e) => this.handleFileUpload(e));
+    playBtn?.addEventListener("click", () => this.play());
+    stopBtn?.addEventListener("click", () => this.stop());
+    exportBtn?.addEventListener("click", () => this.exportJSON());
   }
 
   private async handleFileUpload(e: Event): Promise<void> {
@@ -114,10 +127,10 @@ class AudioAnalyzerDemo {
     const file = input.files?.[0];
     if (!file) return;
 
-    const fileName = document.getElementById('fileName');
+    const fileName = document.getElementById("fileName");
     if (fileName) fileName.textContent = file.name;
 
-    this.setStatus('加载音频中...');
+    this.setStatus("加载音频中...");
 
     try {
       const arrayBuffer = await file.arrayBuffer();
@@ -126,15 +139,22 @@ class AudioAnalyzerDemo {
       this.duration = this.audioBuffer.duration;
 
       // Run multiple analyses
-      this.setStatus('分析频谱...');
-      this.frequencyBands = await this.frequencyAnalyzer.analyze(this.audioBuffer, {
-        onProgress: (p) => this.setStatus(`分析频谱: ${Math.round(p * 100)}%`),
-      });
+      this.setStatus("分析频谱...");
+      this.frequencyBands = await this.frequencyAnalyzer.analyze(
+        this.audioBuffer,
+        {
+          onProgress: (p) =>
+            this.setStatus(`分析频谱: ${Math.round(p * 100)}%`),
+        },
+      );
 
-      this.setStatus('检测节拍...');
-      this.beatInfo = this.beatDetector.detectBeats(this.frequencyBands.bass, this.duration);
+      this.setStatus("检测节拍...");
+      this.beatInfo = this.beatDetector.detectBeats(
+        this.frequencyBands.bass,
+        this.duration,
+      );
 
-      this.setStatus('提取事件...');
+      this.setStatus("提取事件...");
       this.result = await this.audioAnalyzer.analyze(this.audioBuffer, {
         onProgress: (p) => this.setStatus(`提取事件: ${Math.round(p * 100)}%`),
       });
@@ -146,21 +166,21 @@ class AudioAnalyzerDemo {
       this.drawAllVisualizations();
 
       this.setStatus(
-        `分析完成: BPM=${this.beatInfo.bpm}, ${this.result.timeline.length}个事件`
+        `分析完成: BPM=${this.beatInfo.bpm}, ${this.result.timeline.length}个事件`,
       );
 
       this.enableControls();
     } catch (error) {
-      console.error('Analysis failed:', error);
-      this.setStatus('分析失败');
+      console.error("Analysis failed:", error);
+      this.setStatus("分析失败");
     }
   }
 
   private updateBpmDisplay(): void {
     if (!this.beatInfo) return;
 
-    const bpmValue = document.getElementById('bpmValue');
-    const confidenceValue = document.getElementById('confidenceValue');
+    const bpmValue = document.getElementById("bpmValue");
+    const confidenceValue = document.getElementById("confidenceValue");
 
     if (bpmValue) bpmValue.textContent = String(this.beatInfo.bpm);
     if (confidenceValue) {
@@ -170,9 +190,24 @@ class AudioAnalyzerDemo {
 
   private drawAllVisualizations(): void {
     this.drawSpectrogram();
-    this.drawBandEnergy(this.bassCtx, this.bassCanvas, this.frequencyBands?.bass, '#ff5555');
-    this.drawBandEnergy(this.midCtx, this.midCanvas, this.frequencyBands?.mid, '#55ff55');
-    this.drawBandEnergy(this.highCtx, this.highCanvas, this.frequencyBands?.high, '#5599ff');
+    this.drawBandEnergy(
+      this.bassCtx,
+      this.bassCanvas,
+      this.frequencyBands?.bass,
+      "#ff5555",
+    );
+    this.drawBandEnergy(
+      this.midCtx,
+      this.midCanvas,
+      this.frequencyBands?.mid,
+      "#55ff55",
+    );
+    this.drawBandEnergy(
+      this.highCtx,
+      this.highCanvas,
+      this.frequencyBands?.high,
+      "#5599ff",
+    );
     this.drawBeatGrid();
     this.drawTimeline();
   }
@@ -185,7 +220,7 @@ class AudioAnalyzerDemo {
     const { spectrogram, frequencyBinCount } = this.frequencyBands;
 
     ctx.clearRect(0, 0, rect.width, rect.height);
-    ctx.fillStyle = '#000';
+    ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, rect.width, rect.height);
 
     const timeSteps = spectrogram.length;
@@ -212,31 +247,31 @@ class AudioAnalyzerDemo {
           t * pixelWidth,
           rect.height - (f + 1) * pixelHeight, // Flip y-axis
           Math.ceil(pixelWidth) + 1,
-          Math.ceil(pixelHeight) + 1
+          Math.ceil(pixelHeight) + 1,
         );
       }
     }
 
     // Draw frequency labels
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-    ctx.font = '10px sans-serif';
-    ctx.fillText('8kHz', 5, 15);
-    ctx.fillText('2kHz', 5, rect.height * 0.5);
-    ctx.fillText('200Hz', 5, rect.height - 5);
+    ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+    ctx.font = "10px sans-serif";
+    ctx.fillText("8kHz", 5, 15);
+    ctx.fillText("2kHz", 5, rect.height * 0.5);
+    ctx.fillText("200Hz", 5, rect.height - 5);
   }
 
   private drawBandEnergy(
     ctx: CanvasRenderingContext2D,
     canvas: HTMLCanvasElement,
     data: Float32Array | undefined,
-    color: string
+    color: string,
   ): void {
     if (!data) return;
 
     const rect = canvas.getBoundingClientRect();
 
     ctx.clearRect(0, 0, rect.width, rect.height);
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
     ctx.fillRect(0, 0, rect.width, rect.height);
 
     // Draw energy bars
@@ -250,12 +285,12 @@ class AudioAnalyzerDemo {
         i * barWidth,
         rect.height - barHeight,
         Math.max(1, barWidth - 0.5),
-        barHeight
+        barHeight,
       );
     }
 
     // Draw threshold line
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
     ctx.setLineDash([3, 3]);
     ctx.beginPath();
     ctx.moveTo(0, rect.height * 0.5);
@@ -272,7 +307,7 @@ class AudioAnalyzerDemo {
     const { beats, beatInterval } = this.beatInfo;
 
     ctx.clearRect(0, 0, rect.width, rect.height);
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
     ctx.fillRect(0, 0, rect.width, rect.height);
 
     // Draw beat markers
@@ -281,42 +316,53 @@ class AudioAnalyzerDemo {
     for (let i = 0; i < beats.length; i++) {
       const beat = beats[i]!;
       const x = (beat / duration) * rect.width;
-      const beatNumber = BeatDetector.getBeatNumber(beat, beatInterval, beats[0] ?? 0);
+      const beatNumber = BeatDetector.getBeatNumber(
+        beat,
+        beatInterval,
+        beats[0] ?? 0,
+      );
 
       // Different style for beat 1 (downbeat)
       const isDownbeat = beatNumber === 1;
 
-      ctx.fillStyle = isDownbeat ? '#ffaa00' : 'rgba(255, 170, 0, 0.5)';
-      ctx.fillRect(x - 1, isDownbeat ? 5 : 15, 2, isDownbeat ? rect.height - 10 : rect.height - 30);
+      ctx.fillStyle = isDownbeat ? "#ffaa00" : "rgba(255, 170, 0, 0.5)";
+      ctx.fillRect(
+        x - 1,
+        isDownbeat ? 5 : 15,
+        2,
+        isDownbeat ? rect.height - 10 : rect.height - 30,
+      );
 
       // Beat number label for downbeats
       if (isDownbeat && i % 4 === 0) {
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-        ctx.font = '10px sans-serif';
+        ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+        ctx.font = "10px sans-serif";
         ctx.fillText(String(Math.floor(i / 4) + 1), x + 4, rect.height - 5);
       }
     }
 
     // Draw beat number indicators at top
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-    ctx.font = '9px sans-serif';
-    ctx.fillText('小节', 5, 12);
+    ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+    ctx.font = "9px sans-serif";
+    ctx.fillText("小节", 5, 12);
   }
 
   private drawTimeline(): void {
     if (!this.result) return;
 
-    const container = document.getElementById('timelineContainer');
+    const container = document.getElementById("timelineContainer");
     if (!container) return;
 
     const { timeline, duration } = this.result;
-    const rows = container.querySelectorAll('.timeline-row');
+    const rows = container.querySelectorAll(".timeline-row");
 
     // Clear existing events
     rows.forEach((row) => {
-      const eventsArea = row.querySelector('.events-area');
+      const eventsArea = row.querySelector(".events-area");
       if (eventsArea) {
-        eventsArea.querySelectorAll('.timeline-event').forEach((el) => el.remove());
+        eventsArea
+          .querySelectorAll(".timeline-event")
+          .forEach((el) => el.remove());
       }
     });
 
@@ -330,7 +376,7 @@ class AudioAnalyzerDemo {
 
     for (const event of timeline) {
       if (event.isClimax) {
-        eventsByType['climax']?.push(event);
+        eventsByType["climax"]?.push(event);
       } else {
         eventsByType[event.type]?.push(event);
       }
@@ -338,20 +384,20 @@ class AudioAnalyzerDemo {
 
     // Draw events
     rows.forEach((row) => {
-      const type = row.getAttribute('data-type');
+      const type = row.getAttribute("data-type");
       if (!type) return;
 
-      const eventsArea = row.querySelector('.events-area');
+      const eventsArea = row.querySelector(".events-area");
       if (!eventsArea) return;
 
       const events = eventsByType[type] || [];
       const areaWidth = eventsArea.clientWidth;
 
       for (const event of events) {
-        const el = document.createElement('div');
+        const el = document.createElement("div");
         el.className = `timeline-event ${type}`;
         el.style.left = `${(event.explodeTime / duration) * areaWidth}px`;
-        el.style.width = '4px';
+        el.style.width = "4px";
         eventsArea.appendChild(el);
       }
     });
@@ -360,7 +406,7 @@ class AudioAnalyzerDemo {
   private async play(): Promise<void> {
     if (!this.audioBuffer || !this.audioContext) return;
 
-    if (this.audioContext.state === 'suspended') {
+    if (this.audioContext.state === "suspended") {
       await this.audioContext.resume();
     }
 
@@ -402,9 +448,9 @@ class AudioAnalyzerDemo {
   }
 
   private setPlayheadsVisible(visible: boolean): void {
-    const playheads = document.querySelectorAll('.playhead');
+    const playheads = document.querySelectorAll(".playhead");
     playheads.forEach((el) => {
-      (el as HTMLElement).style.display = visible ? 'block' : 'none';
+      (el as HTMLElement).style.display = visible ? "block" : "none";
     });
   }
 
@@ -419,21 +465,21 @@ class AudioAnalyzerDemo {
     };
 
     const json = JSON.stringify(exportData, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
+    const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
 
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = 'audio-analysis.json';
+    a.download = "audio-analysis.json";
     a.click();
 
     URL.revokeObjectURL(url);
   }
 
   private enableControls(): void {
-    const playBtn = document.getElementById('playBtn') as HTMLButtonElement;
-    const stopBtn = document.getElementById('stopBtn') as HTMLButtonElement;
-    const exportBtn = document.getElementById('exportBtn') as HTMLButtonElement;
+    const playBtn = document.getElementById("playBtn") as HTMLButtonElement;
+    const stopBtn = document.getElementById("stopBtn") as HTMLButtonElement;
+    const exportBtn = document.getElementById("exportBtn") as HTMLButtonElement;
 
     if (playBtn) playBtn.disabled = false;
     if (stopBtn) stopBtn.disabled = false;
@@ -441,14 +487,14 @@ class AudioAnalyzerDemo {
   }
 
   private setStatus(text: string): void {
-    const status = document.getElementById('status');
+    const status = document.getElementById("status");
     if (status) status.textContent = text;
   }
 
   private formatTime(seconds: number): string {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   }
 
   private loop = (): void => {
@@ -462,8 +508,10 @@ class AudioAnalyzerDemo {
       const spectrogramRect = this.spectrogramCanvas.getBoundingClientRect();
       const beatRect = this.beatCanvas.getBoundingClientRect();
 
-      const spectrogramPlayhead = document.getElementById('spectrogramPlayhead');
-      const beatPlayhead = document.getElementById('beatPlayhead');
+      const spectrogramPlayhead = document.getElementById(
+        "spectrogramPlayhead",
+      );
+      const beatPlayhead = document.getElementById("beatPlayhead");
 
       if (spectrogramPlayhead) {
         spectrogramPlayhead.style.left = `${progress * spectrogramRect.width}px`;
@@ -473,13 +521,13 @@ class AudioAnalyzerDemo {
       }
 
       // Update progress bar
-      const progressFill = document.getElementById('progressFill');
+      const progressFill = document.getElementById("progressFill");
       if (progressFill) {
         progressFill.style.width = `${progress * 100}%`;
       }
 
       // Update time display
-      const timeDisplay = document.getElementById('timeDisplay');
+      const timeDisplay = document.getElementById("timeDisplay");
       if (timeDisplay) {
         timeDisplay.textContent = `${this.formatTime(currentTime)} / ${this.formatTime(this.duration)}`;
       }

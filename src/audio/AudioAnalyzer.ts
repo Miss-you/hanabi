@@ -1,5 +1,5 @@
-import { AudioEvent, AudioEventType } from '@/core/types';
-import { calculateLaunchParams, random } from '@/utils/math';
+import { AudioEvent, AudioEventType } from "@/core/types";
+import { calculateLaunchParams, random } from "@/utils/math";
 
 export interface AnalysisResult {
   timeline: AudioEvent[];
@@ -35,7 +35,7 @@ export class AudioAnalyzer {
    */
   async analyze(
     buffer: AudioBuffer,
-    callbacks?: AnalysisCallbacks
+    callbacks?: AnalysisCallbacks,
   ): Promise<AnalysisResult> {
     const channelData = buffer.getChannelData(0);
     const sampleRate = buffer.sampleRate;
@@ -78,12 +78,12 @@ export class AudioAnalyzer {
       if (rms > bassThresh && time - lastBassTime > bassCoolDown) {
         const params = calculateLaunchParams(
           this.screenHeight,
-          random(0.15, 0.3)
+          random(0.15, 0.3),
         );
         timeline.push({
           launchTime: time - params.duration,
           explodeTime: time,
-          type: 'bass' as AudioEventType,
+          type: "bass" as AudioEventType,
           isClimax: isClimaxNow,
           targetY: params.targetY,
           energy: rms,
@@ -94,12 +94,12 @@ export class AudioAnalyzer {
       else if (rms > midThresh && time - lastMidTime > 0.15) {
         const params = calculateLaunchParams(
           this.screenHeight,
-          random(0.4, 0.6)
+          random(0.4, 0.6),
         );
         timeline.push({
           launchTime: time - params.duration,
           explodeTime: time,
-          type: 'mid' as AudioEventType,
+          type: "mid" as AudioEventType,
           isClimax: isClimaxNow,
           targetY: params.targetY,
           energy: rms,
@@ -110,12 +110,12 @@ export class AudioAnalyzer {
       else if (isQuiet && time - lastMidTime > 0.8) {
         const params = calculateLaunchParams(
           this.screenHeight,
-          random(0.3, 0.7)
+          random(0.3, 0.7),
         );
         timeline.push({
           launchTime: time - params.duration,
           explodeTime: time,
-          type: 'piano' as AudioEventType,
+          type: "piano" as AudioEventType,
           isClimax: false,
           targetY: params.targetY,
           energy: rms * 0.8,
@@ -175,7 +175,7 @@ export class AudioAnalyzer {
         })),
       },
       null,
-      2
+      2,
     );
   }
 }

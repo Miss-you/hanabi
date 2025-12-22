@@ -1,6 +1,6 @@
-import { FireworkType, TrailPoint } from './types';
-import { Particle } from './Particle';
-import { random, hslColor } from '@/utils/math';
+import { FireworkType, TrailPoint } from "./types";
+import { Particle } from "./Particle";
+import { random, hslColor } from "@/utils/math";
 
 export interface FireworkCallbacks {
   onExplode: (particles: Particle[]) => void;
@@ -38,7 +38,7 @@ export class Firework {
     screenWidth: number,
     callbacks: FireworkCallbacks,
     energy: number = 0.5,
-    delay: number = 0
+    delay: number = 0,
   ) {
     this.x = x;
     this.y = screenHeight;
@@ -105,7 +105,7 @@ export class Firework {
     }
 
     // Draw head
-    ctx.fillStyle = '#fff';
+    ctx.fillStyle = "#fff";
     ctx.beginPath();
     ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
     ctx.fill();
@@ -131,8 +131,11 @@ export class Firework {
 
     // Determine particle count based on type and energy
     const baseCount =
-      this.type === 'kiku' ? 150 : this.type === 'willow' ? 100 : 80;
-    const count = Math.min(400, Math.floor(baseCount * (0.8 + energyScale * 0.5)));
+      this.type === "kiku" ? 150 : this.type === "willow" ? 100 : 80;
+    const count = Math.min(
+      400,
+      Math.floor(baseCount * (0.8 + energyScale * 0.5)),
+    );
 
     const colorHsl = hslColor(this.hue, 100, 60);
 
@@ -145,17 +148,17 @@ export class Firework {
       let speed: number;
 
       switch (this.type) {
-        case 'kiku':
+        case "kiku":
           speed = random(3, 6) * sizeMult;
           break;
-        case 'willow':
+        case "willow":
           speed = random(2, 5) * sizeMult;
           p.setColor(hslColor(45, 100, random(50, 80)));
           break;
-        case 'botan':
+        case "botan":
           speed = random(1, 8) * sizeMult;
           break;
-        case 'piano':
+        case "piano":
           speed = random(1, 4) * sizeMult;
           break;
         default:
