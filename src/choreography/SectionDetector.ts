@@ -1,4 +1,5 @@
 import { AudioEvent, MusicSection, SectionType } from "@/core/types";
+import { TUNING } from "@/config/tuning";
 
 /**
  * Window for analyzing energy patterns
@@ -20,7 +21,10 @@ export class SectionDetector {
   private windowSize: number; // seconds per window
   private minSectionDuration: number; // minimum section length
 
-  constructor(windowSize: number = 4, minSectionDuration: number = 8) {
+  constructor(
+    windowSize: number = TUNING.sectionDetector.windowSize,
+    minSectionDuration: number = TUNING.sectionDetector.minSectionDuration,
+  ) {
     this.windowSize = windowSize;
     this.minSectionDuration = minSectionDuration;
   }
@@ -30,7 +34,15 @@ export class SectionDetector {
    */
   detect(events: AudioEvent[], duration: number): MusicSection[] {
     if (events.length === 0 || duration <= 0) {
-      return [this.createSection("verse", 0, duration, 0.5, 0)];
+      return [
+        this.createSection(
+          "verse",
+          0,
+          duration,
+          TUNING.sectionDetector.defaultEnergy,
+          0,
+        ),
+      ];
     }
 
     // Step 1: Create analysis windows
@@ -95,14 +107,15 @@ export class SectionDetector {
    * Calculate energy trends between windows
    */
   private calculateTrends(windows: AnalysisWindow[]): void {
+    const trendThreshold = TUNING.sectionDetector.trendThreshold;
     for (let i = 1; i < windows.length; i++) {
       const prev = windows[i - 1]!;
       const curr = windows[i]!;
       const diff = curr.avgEnergy - prev.avgEnergy;
 
-      if (diff > 0.1) {
+      if (diff > trendThreshold) {
         curr.trend = "rising";
-      } else if (diff < -0.1) {
+      } else if (diff < -trendThreshold) {
         curr.trend = "falling";
       } else {
         curr.trend = "stable";
@@ -118,34 +131,45 @@ export class SectionDetector {
     duration: number,
   ): MusicSection[] {
     const sections: MusicSection[] = [];
+    const tuning = TUNING.sectionDetector;
 
     // Calculate global thresholds
     const allEnergies = windows.map((w) => w.avgEnergy).filter((e) => e > 0);
     const avgEnergy =
       allEnergies.length > 0
         ? allEnergies.reduce((a, b) => a + b, 0) / allEnergies.length
-        : 0.5;
-    const maxEnergy = Math.max(...allEnergies, 0.5);
+        : tuning.defaultEnergy;
+    const maxEnergy = Math.max(...allEnergies, tuning.defaultEnergy);
 
-    const highThreshold = avgEnergy + (maxEnergy - avgEnergy) * 0.5;
-    const lowThreshold = avgEnergy * 0.5;
+    const highThreshold =
+      avgEnergy + (maxEnergy - avgEnergy) * tuning.highThresholdFactor;
+    const lowThreshold = avgEnergy * tuning.lowThresholdFactor;
 
     for (const window of windows) {
       let type: SectionType;
       const { avgEnergy: energy, climaxCount, trend, eventCount } = window;
 
       // Determine section type based on energy and patterns
-      if (climaxCount > 2 || energy > highThreshold * 0.95) {
+      if (
+        climaxCount > tuning.climaxCountThreshold ||
+        energy > highThreshold * tuning.climaxEnergyFactor
+      ) {
         type = "climax";
-      } else if (energy > highThreshold * 0.7 && eventCount > 5) {
+      } else if (
+        energy > highThreshold * tuning.chorusEnergyFactor &&
+        eventCount > tuning.chorusEventCount
+      ) {
         type = "chorus";
-      } else if (trend === "rising" && energy > avgEnergy * 0.8) {
+      } else if (
+        trend === "rising" &&
+        energy > avgEnergy * tuning.prechorusEnergyFactor
+      ) {
         type = "prechorus";
-      } else if (energy < lowThreshold || eventCount < 2) {
+      } else if (energy < lowThreshold || eventCount < tuning.lowEventCount) {
         // Check position for intro/outro
-        if (window.startTime < duration * 0.15) {
+        if (window.startTime < duration * tuning.introPosition) {
           type = "intro";
-        } else if (window.endTime > duration * 0.85) {
+        } else if (window.endTime > duration * tuning.outroPosition) {
           type = "outro";
         } else {
           type = "bridge";
@@ -221,7 +245,15 @@ export class SectionDetector {
 
     // Ensure we have at least one section
     if (result.length === 0) {
-      result.push(this.createSection("verse", 0, duration, 0.5, 0));
+      result.push(
+        this.createSection(
+          "verse",
+          0,
+          duration,
+          TUNING.sectionDetector.defaultEnergy,
+          0,
+        ),
+      );
     }
 
     return result;
@@ -267,7 +299,7 @@ export class SectionDetector {
   static isNearTransition(
     sections: MusicSection[],
     time: number,
-    threshold: number = 0.5,
+    threshold: number = TUNING.sectionDetector.transitionThreshold,
   ): boolean {
     for (const section of sections) {
       if (Math.abs(time - section.startTime) < threshold) {

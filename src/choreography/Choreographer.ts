@@ -5,6 +5,8 @@ import { FireworkLauncher } from "@/engine/FireworkLauncher";
 import { PatternLibrary } from "./PatternLibrary";
 import { SectionDetector } from "./SectionDetector";
 import { RuleEngine, MusicContext } from "./RuleEngine";
+import { TUNING } from "@/config/tuning";
+import { logDebug } from "@/utils/logger";
 
 /**
  * Input data for preparing a track
@@ -48,13 +50,15 @@ export class Choreographer {
   // Playback state
   private currentEventIndex: number = 0;
   private recentEvents: AudioEvent[] = [];
-  private readonly recentEventsWindow: number = 2; // seconds
+  private readonly recentEventsWindow: number =
+    TUNING.choreographer.recentEventsWindow;
 
   // Energy boost config for sparse fireworks
   private recentLaunches: number[] = []; // timestamps of recent launches
-  private readonly launchTrackingWindow: number = 3; // seconds to track
-  private readonly minEnergyFloor: number = 0.55; // minimum energy when sparse
-  private readonly sparseThreshold: number = 3; // if <= this many launches in window, boost energy
+  private readonly launchTrackingWindow: number =
+    TUNING.choreographer.launchTrackingWindow;
+  private readonly minEnergyFloor: number = TUNING.choreographer.minEnergyFloor;
+  private readonly sparseThreshold: number = TUNING.choreographer.sparseThreshold;
 
   constructor() {
     this.patternLibrary = new PatternLibrary();
@@ -86,13 +90,13 @@ export class Choreographer {
     // Reset playback state
     this.reset();
 
-    console.log("[Choreographer] Track prepared:", {
+    logDebug("[Choreographer] Track prepared:", {
       events: this.events.length,
       sections: this.sections.length,
       bpm: this.beatInfo.bpm,
       duration: this.duration,
     });
-    console.log("[Choreographer] Detected sections:", this.sections);
+    logDebug("[Choreographer] Detected sections:", this.sections);
   }
 
   /**
@@ -116,7 +120,8 @@ export class Choreographer {
     // Process events up to current time
     while (
       this.currentEventIndex < this.events.length &&
-      this.events[this.currentEventIndex]!.explodeTime <= currentTime + 0.5 // Look ahead 500ms
+      this.events[this.currentEventIndex]!.explodeTime <=
+        currentTime + TUNING.choreographer.lookAheadSeconds
     ) {
       const event = this.events[this.currentEventIndex]!;
       this.processEvent(event, currentTime);
@@ -213,12 +218,16 @@ export class Choreographer {
     const adjustedParams = { ...command.params };
     if (isSparse && adjustedParams.energy !== undefined) {
       // Boost energy: the sparser, the bigger
-      const boostFactor = 1 + (this.sparseThreshold - recentCount) * 0.15;
+      const boostFactor =
+        1 + (this.sparseThreshold - recentCount) * TUNING.choreographer.sparseBoostPerMissing;
       const boostedEnergy = Math.max(
         this.minEnergyFloor,
         adjustedParams.energy * boostFactor,
       );
-      adjustedParams.energy = Math.min(1.0, boostedEnergy);
+      adjustedParams.energy = Math.min(
+        TUNING.choreographer.energyCap,
+        boostedEnergy,
+      );
     } else if (isSparse && adjustedParams.energy === undefined) {
       // Set a default high energy for sparse periods
       adjustedParams.energy = this.minEnergyFloor;
@@ -266,7 +275,10 @@ export class Choreographer {
   /**
    * Check if near a section transition
    */
-  isNearTransition(time: number, threshold: number = 0.5): boolean {
+  isNearTransition(
+    time: number,
+    threshold: number = TUNING.sectionDetector.transitionThreshold,
+  ): boolean {
     return SectionDetector.isNearTransition(this.sections, time, threshold);
   }
 
@@ -281,8 +293,10 @@ export class Choreographer {
 
     const defaultParams: LaunchCommand["params"] = {
       duration: 0,
-      targetY: this.launcher.getScreenHeight() * 0.25,
-      energy: 0.6,
+      targetY:
+        this.launcher.getScreenHeight() *
+        TUNING.choreographer.defaultTrigger.targetYFactor,
+      energy: TUNING.choreographer.defaultTrigger.energy,
     };
 
     this.patternLibrary.execute(pattern, this.launcher, {

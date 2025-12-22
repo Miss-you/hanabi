@@ -1,4 +1,5 @@
 import { AudioEvent, FireworkType } from "@/core/types";
+import { TUNING } from "@/config/tuning";
 
 export interface TimelineCallbacks {
   onBass?: (event: AudioEvent) => void;
@@ -18,7 +19,7 @@ export class Timeline {
   private audioContext: AudioContext | null = null;
   private source: AudioBufferSourceNode | null = null;
   private callbacks: TimelineCallbacks;
-  private lastSalvoTime: number = -10;
+  private lastSalvoTime: number = TUNING.timeline.initialSalvoTime;
 
   isPlaying: boolean = false;
   isPaused: boolean = false;
@@ -33,7 +34,7 @@ export class Timeline {
   loadEvents(events: AudioEvent[]): void {
     this.events = [...events];
     this.currentIndex = 0;
-    this.lastSalvoTime = -10;
+    this.lastSalvoTime = TUNING.timeline.initialSalvoTime;
   }
 
   /**
@@ -110,6 +111,21 @@ export class Timeline {
   }
 
   /**
+   * Stop playback and release audio resources
+   */
+  async close(): Promise<void> {
+    this.stop();
+    if (this.audioContext) {
+      try {
+        await this.audioContext.close();
+      } catch {
+        // Ignore close errors
+      }
+      this.audioContext = null;
+    }
+  }
+
+  /**
    * Get current playback time
    */
   get currentTime(): number {
@@ -145,7 +161,10 @@ export class Timeline {
   private fireEvent(event: AudioEvent, currentTime: number): void {
     switch (event.type) {
       case "bass":
-        if (event.isClimax && currentTime - this.lastSalvoTime > 2.0) {
+        if (
+          event.isClimax &&
+          currentTime - this.lastSalvoTime > TUNING.timeline.climaxCooldown
+        ) {
           this.callbacks.onClimax?.(event);
           this.lastSalvoTime = currentTime;
         } else {
@@ -177,7 +196,9 @@ export class Timeline {
   ): FireworkType {
     switch (eventType) {
       case "bass":
-        return isClimax || Math.random() > 0.6 ? "willow" : "kiku";
+        return isClimax || Math.random() > TUNING.timeline.climaxWillowRoll
+          ? "willow"
+          : "kiku";
       case "mid":
         return "botan";
       case "piano":

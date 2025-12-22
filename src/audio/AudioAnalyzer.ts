@@ -1,5 +1,6 @@
 import { AudioEvent, AudioEventType } from "@/core/types";
 import { calculateLaunchParams, random } from "@/utils/math";
+import { TUNING } from "@/config/tuning";
 
 export interface AnalysisResult {
   timeline: AudioEvent[];
@@ -37,9 +38,10 @@ export class AudioAnalyzer {
     buffer: AudioBuffer,
     callbacks?: AnalysisCallbacks,
   ): Promise<AnalysisResult> {
+    const tuning = TUNING.audioAnalyzer;
     const channelData = buffer.getChannelData(0);
     const sampleRate = buffer.sampleRate;
-    const step = Math.floor(sampleRate / 60); // 60 FPS analysis
+    const step = Math.floor(sampleRate / tuning.analysisFps);
 
     const timeline: AudioEvent[] = [];
 
@@ -61,24 +63,28 @@ export class AudioAnalyzer {
       const time = i / sampleRate;
 
       // Climax detection
-      if (rms > 0.3) {
+      if (rms > tuning.climaxRmsThreshold) {
         climaxEnergy++;
       } else {
         climaxEnergy = Math.max(0, climaxEnergy - 1);
       }
-      const isClimaxNow = climaxEnergy > 60;
+      const isClimaxNow = climaxEnergy > tuning.climaxFramesThreshold;
 
       // Thresholds and cooldowns
-      const bassThresh = isClimaxNow ? 0.3 : 0.4;
-      const bassCoolDown = isClimaxNow ? 0.2 : 0.35;
-      const midThresh = 0.15;
-      const isQuiet = rms < 0.15 && rms > 0.05;
+      const bassThresh = isClimaxNow
+        ? tuning.bass.thresholdClimax
+        : tuning.bass.threshold;
+      const bassCoolDown = isClimaxNow
+        ? tuning.bass.cooldownClimax
+        : tuning.bass.cooldown;
+      const midThresh = tuning.mid.threshold;
+      const isQuiet = rms < tuning.piano.quietMax && rms > tuning.piano.quietMin;
 
       // Bass events (loud peaks)
       if (rms > bassThresh && time - lastBassTime > bassCoolDown) {
         const params = calculateLaunchParams(
           this.screenHeight,
-          random(0.15, 0.3),
+          random(tuning.bass.launchRatioMin, tuning.bass.launchRatioMax),
         );
         timeline.push({
           launchTime: time - params.duration,
@@ -91,10 +97,10 @@ export class AudioAnalyzer {
         lastBassTime = time;
       }
       // Mid events
-      else if (rms > midThresh && time - lastMidTime > 0.15) {
+      else if (rms > midThresh && time - lastMidTime > tuning.mid.cooldown) {
         const params = calculateLaunchParams(
           this.screenHeight,
-          random(0.4, 0.6),
+          random(tuning.mid.launchRatioMin, tuning.mid.launchRatioMax),
         );
         timeline.push({
           launchTime: time - params.duration,
@@ -107,10 +113,10 @@ export class AudioAnalyzer {
         lastMidTime = time;
       }
       // Piano/quiet events
-      else if (isQuiet && time - lastMidTime > 0.8) {
+      else if (isQuiet && time - lastMidTime > tuning.piano.cooldown) {
         const params = calculateLaunchParams(
           this.screenHeight,
-          random(0.3, 0.7),
+          random(tuning.piano.launchRatioMin, tuning.piano.launchRatioMax),
         );
         timeline.push({
           launchTime: time - params.duration,
@@ -118,14 +124,14 @@ export class AudioAnalyzer {
           type: "piano" as AudioEventType,
           isClimax: false,
           targetY: params.targetY,
-          energy: rms * 0.8,
+          energy: rms * tuning.piano.energyScale,
         });
         lastMidTime = time;
       }
 
       // Report progress
       processedSteps++;
-      if (processedSteps % 100 === 0 && callbacks?.onProgress) {
+      if (processedSteps % tuning.progressStep === 0 && callbacks?.onProgress) {
         callbacks.onProgress(processedSteps / totalSteps);
       }
     }
@@ -134,7 +140,7 @@ export class AudioAnalyzer {
     timeline.sort((a, b) => a.launchTime - b.launchTime);
 
     // Create simplified waveform for visualization
-    const waveformSamples = 1000;
+    const waveformSamples = tuning.waveformSamples;
     const waveformStep = Math.floor(channelData.length / waveformSamples);
     const waveform = new Float32Array(waveformSamples);
 

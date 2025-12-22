@@ -6,6 +6,7 @@ import {
   SectionType,
 } from "@/core/types";
 import { BeatInfo } from "@/audio/BeatDetector";
+import { TUNING } from "@/config/tuning";
 
 /**
  * Context available to rules for evaluation
@@ -55,15 +56,17 @@ export class RuleEngine {
    * Register built-in choreography rules
    */
   private registerDefaultRules(): void {
+    const tuning = TUNING.ruleEngine;
     // Priority 100: Grand Finale (last 10 seconds)
     this.addRule({
       id: "finale",
       priority: 100,
-      cooldown: 10,
+      cooldown: tuning.finale.cooldown,
       exclusive: true,
       condition: (ctx) => {
         return (
-          ctx.duration - ctx.currentTime < 10 && ctx.currentEvent.energy > 0.6
+          ctx.duration - ctx.currentTime < tuning.finale.remainingSeconds &&
+          ctx.currentEvent.energy > tuning.finale.minEnergy
         );
       },
       action: (ctx) => ({
@@ -71,7 +74,7 @@ export class RuleEngine {
         launchTime: ctx.currentTime,
         params: {
           duration: 0,
-          targetY: ctx.screenHeight * 0.2,
+          targetY: ctx.screenHeight * tuning.finale.targetY,
           energy: ctx.currentEvent.energy,
         },
       }),
@@ -81,7 +84,7 @@ export class RuleEngine {
     this.addRule({
       id: "climax_salvo",
       priority: 90,
-      cooldown: 2,
+      cooldown: tuning.climaxSalvo.cooldown,
       exclusive: true,
       condition: (ctx) => {
         return (
@@ -95,9 +98,12 @@ export class RuleEngine {
         launchTime: ctx.currentTime,
         params: {
           duration: 0,
-          targetY: ctx.screenHeight * 0.2,
-          count: Math.floor(15 + ctx.currentEvent.energy * 10),
-          interval: 40,
+          targetY: ctx.screenHeight * tuning.climaxSalvo.targetY,
+          count: Math.floor(
+            tuning.climaxSalvo.countBase +
+              ctx.currentEvent.energy * tuning.climaxSalvo.countEnergyScale,
+          ),
+          interval: tuning.climaxSalvo.intervalMs,
           energy: ctx.currentEvent.energy,
         },
       }),
@@ -107,29 +113,38 @@ export class RuleEngine {
     this.addRule({
       id: "beat_drop",
       priority: 85,
-      cooldown: 4,
+      cooldown: tuning.beatDrop.cooldown,
       exclusive: true,
       condition: (ctx) => {
-        if (!ctx.beatInfo || ctx.recentEvents.length < 3) return false;
+        const recentWindow = tuning.beatDrop.recentEnergyWindow;
+        if (!ctx.beatInfo || ctx.recentEvents.length < recentWindow) {
+          return false;
+        }
 
         // Check if this is near a beat
         const nearBeat = ctx.beatInfo.beats.some(
-          (beat) => Math.abs(beat - ctx.currentTime) < 0.1,
+          (beat) =>
+            Math.abs(beat - ctx.currentTime) < tuning.beatDrop.nearBeatTolerance,
         );
         if (!nearBeat) return false;
 
         // Check if recent events were low energy
         const recentEnergy =
-          ctx.recentEvents.slice(-3).reduce((sum, e) => sum + e.energy, 0) / 3;
-        return recentEnergy < 0.3 && ctx.currentEvent.energy > 0.6;
+          ctx.recentEvents.slice(-recentWindow).reduce((sum, e) => {
+            return sum + e.energy;
+          }, 0) / recentWindow;
+        return (
+          recentEnergy < tuning.beatDrop.recentEnergyThreshold &&
+          ctx.currentEvent.energy > tuning.beatDrop.minEnergy
+        );
       },
       action: (ctx) => ({
         pattern: "cluster",
         launchTime: ctx.currentTime,
         params: {
           duration: 0,
-          targetY: ctx.screenHeight * 0.2,
-          count: 5,
+          targetY: ctx.screenHeight * tuning.beatDrop.targetY,
+          count: tuning.beatDrop.count,
           energy: ctx.currentEvent.energy,
           x: ctx.screenWidth / 2,
         },
@@ -140,12 +155,15 @@ export class RuleEngine {
     this.addRule({
       id: "section_transition",
       priority: 80,
-      cooldown: 8,
+      cooldown: tuning.sectionTransition.cooldown,
       exclusive: false,
       condition: (ctx) => {
         if (!ctx.currentSection) return false;
         // Near section start (within 0.5s)
-        return ctx.currentTime - ctx.currentSection.startTime < 0.5;
+        return (
+          ctx.currentTime - ctx.currentSection.startTime <
+          tuning.sectionTransition.nearStartWindow
+        );
       },
       action: (ctx) => {
         const sectionPatterns: Record<SectionType, PatternType> = {
@@ -164,7 +182,7 @@ export class RuleEngine {
           launchTime: ctx.currentTime,
           params: {
             duration: 0,
-            targetY: ctx.screenHeight * 0.25,
+            targetY: ctx.screenHeight * tuning.sectionTransition.targetY,
             energy: ctx.currentEvent.energy,
           },
         };
@@ -175,13 +193,13 @@ export class RuleEngine {
     this.addRule({
       id: "chorus_symmetric",
       priority: 70,
-      cooldown: 1.5,
+      cooldown: tuning.chorusSymmetric.cooldown,
       exclusive: false,
       condition: (ctx) => {
         return (
           ctx.currentSection?.type === "chorus" &&
           ctx.currentEvent.type === "bass" &&
-          ctx.currentEvent.energy > 0.5
+          ctx.currentEvent.energy > tuning.chorusSymmetric.minEnergy
         );
       },
       action: (ctx) => ({
@@ -191,7 +209,7 @@ export class RuleEngine {
           duration: 0,
           targetY: ctx.currentEvent.targetY,
           count: 2,
-          spread: 0.25,
+          spread: tuning.chorusSymmetric.spread,
           energy: ctx.currentEvent.energy,
         },
       }),
@@ -201,7 +219,7 @@ export class RuleEngine {
     this.addRule({
       id: "piano_beat_sync",
       priority: 60,
-      cooldown: 0.3,
+      cooldown: tuning.pianoBeatSync.cooldown,
       exclusive: false,
       condition: (ctx) => {
         if (ctx.currentEvent.type !== "piano" || !ctx.beatInfo) return false;
@@ -214,7 +232,10 @@ export class RuleEngine {
             : nearest;
         }, ctx.beatInfo.beats[0] ?? 0);
 
-        return Math.abs(nearestBeat - ctx.currentEvent.explodeTime) < 0.05;
+        return (
+          Math.abs(nearestBeat - ctx.currentEvent.explodeTime) <
+          tuning.pianoBeatSync.beatTolerance
+        );
       },
       action: (ctx) => ({
         pattern: "single",
@@ -222,9 +243,12 @@ export class RuleEngine {
         params: {
           duration: 0,
           targetY: ctx.currentEvent.targetY,
-          energy: Math.max(0.5, ctx.currentEvent.energy * 0.9), // Ensure minimum visibility
+          energy: Math.max(
+            tuning.pianoBeatSync.minEnergy,
+            ctx.currentEvent.energy * tuning.pianoBeatSync.energyScale,
+          ),
           type: "piano",
-          hue: 45, // Golden warm color
+          hue: tuning.pianoBeatSync.hue,
         },
       }),
     });
@@ -233,11 +257,12 @@ export class RuleEngine {
     this.addRule({
       id: "bass_impact",
       priority: 50,
-      cooldown: 0.35,
+      cooldown: tuning.bassImpact.cooldown,
       exclusive: false,
       condition: (ctx) => {
         return (
-          ctx.currentEvent.type === "bass" && ctx.currentEvent.energy > 0.4
+          ctx.currentEvent.type === "bass" &&
+          ctx.currentEvent.energy > tuning.bassImpact.minEnergy
         );
       },
       action: (ctx) => ({
@@ -256,10 +281,13 @@ export class RuleEngine {
     this.addRule({
       id: "mid_accent",
       priority: 40,
-      cooldown: 0.2,
+      cooldown: tuning.midAccent.cooldown,
       exclusive: false,
       condition: (ctx) => {
-        return ctx.currentEvent.type === "mid" && ctx.currentEvent.energy > 0.3;
+        return (
+          ctx.currentEvent.type === "mid" &&
+          ctx.currentEvent.energy > tuning.midAccent.minEnergy
+        );
       },
       action: (ctx) => ({
         pattern: "single",
@@ -267,7 +295,7 @@ export class RuleEngine {
         params: {
           duration: 0,
           targetY: ctx.currentEvent.targetY,
-          energy: ctx.currentEvent.energy * 0.8,
+          energy: ctx.currentEvent.energy * tuning.midAccent.energyScale,
           type: "botan",
         },
       }),
@@ -277,13 +305,13 @@ export class RuleEngine {
     this.addRule({
       id: "ambient_scatter",
       priority: 20,
-      cooldown: 3,
+      cooldown: tuning.ambientScatter.cooldown,
       exclusive: false,
       condition: (ctx) => {
         return (
           ctx.currentEvent.type === "piano" &&
           ctx.currentSection?.type !== "climax" &&
-          ctx.currentEvent.energy < 0.3
+          ctx.currentEvent.energy < tuning.ambientScatter.maxEnergy
         );
       },
       action: (ctx) => ({
@@ -291,9 +319,9 @@ export class RuleEngine {
         launchTime: ctx.currentTime,
         params: {
           duration: 0,
-          targetY: ctx.screenHeight * 0.4,
-          count: 3,
-          energy: 0.45, // Raised from 0.25 for better visibility
+          targetY: ctx.screenHeight * tuning.ambientScatter.targetY,
+          count: tuning.ambientScatter.count,
+          energy: tuning.ambientScatter.energy,
         },
       }),
     });

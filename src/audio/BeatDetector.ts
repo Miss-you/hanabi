@@ -1,6 +1,9 @@
+import { TUNING } from "@/config/tuning";
+
 /**
  * Beat detection result
  */
+
 export interface BeatInfo {
   /** Detected BPM */
   bpm: number;
@@ -18,7 +21,7 @@ export interface BeatInfo {
 export class BeatDetector {
   private fps: number;
 
-  constructor(fps: number = 60) {
+  constructor(fps: number = TUNING.beatDetector.fps) {
     this.fps = fps;
   }
 
@@ -49,8 +52,9 @@ export class BeatDetector {
    */
   private detectOnsets(energy: Float32Array): number[] {
     const onsets: number[] = [];
-    const windowSize = Math.floor(this.fps * 0.1); // 100ms window
-    const threshold = 0.15;
+    const tuning = TUNING.beatDetector;
+    const windowSize = Math.floor(this.fps * tuning.onsetWindowSeconds);
+    const threshold = tuning.onsetThreshold;
 
     // Calculate local average for adaptive thresholding
     for (let i = windowSize; i < energy.length - windowSize; i++) {
@@ -68,13 +72,16 @@ export class BeatDetector {
 
       const isPeak = current > prev && current > next;
       const aboveThreshold = current > localAvg + threshold;
-      const aboveMinimum = current > 0.1;
+      const aboveMinimum = current > tuning.onsetMinEnergy;
 
       if (isPeak && aboveThreshold && aboveMinimum) {
         // Check minimum distance from last onset (avoid double triggers)
         const timeInSeconds = i / this.fps;
         const lastOnset = onsets[onsets.length - 1];
-        if (!lastOnset || timeInSeconds - lastOnset > 0.15) {
+        if (
+          !lastOnset ||
+          timeInSeconds - lastOnset > tuning.onsetMinDistance
+        ) {
           onsets.push(timeInSeconds);
         }
       }
@@ -90,8 +97,9 @@ export class BeatDetector {
     onsets: number[],
     _duration: number,
   ): { bpm: number; confidence: number } {
+    const tuning = TUNING.beatDetector.tempo;
     if (onsets.length < 4) {
-      return { bpm: 120, confidence: 0 }; // Default fallback
+      return { bpm: tuning.fallbackBpm, confidence: 0 };
     }
 
     // Calculate intervals between consecutive onsets
@@ -99,18 +107,18 @@ export class BeatDetector {
     for (let i = 1; i < onsets.length; i++) {
       const interval = onsets[i]! - onsets[i - 1]!;
       // Only consider reasonable intervals (60-200 BPM range)
-      if (interval > 0.3 && interval < 1.0) {
+      if (interval > tuning.minInterval && interval < tuning.maxInterval) {
         intervals.push(interval);
       }
     }
 
     if (intervals.length < 2) {
-      return { bpm: 120, confidence: 0 };
+      return { bpm: tuning.fallbackBpm, confidence: 0 };
     }
 
     // Use histogram to find most common interval
     const histogram = new Map<number, number>();
-    const binSize = 0.02; // 20ms bins
+    const binSize = tuning.histogramBin;
 
     for (const interval of intervals) {
       const bin = Math.round(interval / binSize) * binSize;
@@ -131,11 +139,14 @@ export class BeatDetector {
     let bpm = 60 / bestInterval;
 
     // Normalize BPM to common range (80-160)
-    while (bpm < 80) bpm *= 2;
-    while (bpm > 160) bpm /= 2;
+    while (bpm < tuning.normalizeMinBpm) bpm *= 2;
+    while (bpm > tuning.normalizeMaxBpm) bpm /= 2;
 
     // Calculate confidence based on consistency
-    const confidence = Math.min(1, maxCount / (intervals.length * 0.5));
+    const confidence = Math.min(
+      1,
+      maxCount / (intervals.length * tuning.confidenceDivisor),
+    );
 
     return { bpm: Math.round(bpm), confidence };
   }
@@ -148,19 +159,20 @@ export class BeatDetector {
     beatInterval: number,
     duration: number,
   ): number[] {
+    const tuning = TUNING.beatDetector.beatGrid;
     const beats: number[] = [];
 
     // Find best starting point by checking alignment with onsets
     let bestOffset = 0;
     let bestScore = 0;
 
-    for (let offset = 0; offset < beatInterval; offset += 0.01) {
+    for (let offset = 0; offset < beatInterval; offset += tuning.offsetStep) {
       let score = 0;
       for (const onset of onsets) {
         // Check how close onset is to a beat
         const beatPhase = (onset - offset) % beatInterval;
         const distance = Math.min(beatPhase, beatInterval - beatPhase);
-        if (distance < 0.05) {
+        if (distance < tuning.alignmentTolerance) {
           score++;
         }
       }

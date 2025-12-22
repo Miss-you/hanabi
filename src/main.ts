@@ -7,6 +7,8 @@ import { BeatDetector } from "@/audio/BeatDetector";
 import { Timeline } from "@/audio/Timeline";
 import { Choreographer } from "@/choreography/Choreographer";
 import { FireworkType } from "@/core/types";
+import { TUNING } from "@/config/tuning";
+import { logDebug } from "@/utils/logger";
 import "./styles/main.css";
 
 type AppMode = "idle" | "demo" | "music";
@@ -75,7 +77,7 @@ class HanabiApp {
   private startDemo(): void {
     this.mode = "demo";
     this.demoTimer = 0;
-    this.timeline.stop();
+    void this.timeline.close();
     this.setStatus("模式: 演示 (自动编排)");
   }
 
@@ -100,12 +102,20 @@ class HanabiApp {
     if (!file) return;
 
     this.mode = "music";
+    this.isPaused = false;
     this.setStatus("加载音频中...");
 
     try {
+      await this.validateAudioFile(file);
+      await this.timeline.close();
+
       const arrayBuffer = await file.arrayBuffer();
-      const audioContext = new AudioContext();
-      this.audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+      const decodeContext = new AudioContext();
+      try {
+        this.audioBuffer = await decodeContext.decodeAudioData(arrayBuffer);
+      } finally {
+        await decodeContext.close();
+      }
       const duration = this.audioBuffer.duration;
 
       // Step 1: Basic audio analysis for events
@@ -138,14 +148,19 @@ class HanabiApp {
 
       // Display stats
       const stats = this.choreographer.getStats();
-      console.log("[HanabiApp] Choreography ready:", stats);
+      logDebug("[HanabiApp] Choreography ready:", stats);
       this.setStatus(`正在播放: ${file.name} | BPM: ${Math.round(stats.bpm)}`);
 
       await this.timeline.play(this.audioBuffer);
     } catch (error) {
       console.error("Audio loading failed:", error);
-      this.setStatus("音频加载失败");
+      this.setStatus(
+        error instanceof Error ? error.message : "音频加载失败",
+      );
       this.mode = "idle";
+      this.audioBuffer = null;
+    } finally {
+      input.value = "";
     }
   }
 
@@ -153,23 +168,83 @@ class HanabiApp {
     this.demoTimer++;
 
     // Phase-based thresholds
-    let threshold = 0.98;
-    if (this.demoTimer > 300) threshold = 0.95;
-    if (this.demoTimer > 900) threshold = 0.85;
+    const demo = TUNING.demo;
+    let threshold: number = demo.thresholdBase;
+    if (this.demoTimer > demo.midPhaseStart) threshold = demo.thresholdMid;
+    if (this.demoTimer > demo.latePhaseStart) threshold = demo.thresholdLate;
 
     if (Math.random() > threshold) {
       const type: FireworkType =
-        this.demoTimer > 900
-          ? Math.random() > 0.5
+        this.demoTimer > demo.latePhaseStart
+          ? Math.random() > demo.latePhaseWillowChance
             ? "willow"
             : "kiku"
-          : this.demoTimer > 300
+          : this.demoTimer > demo.midPhaseStart
             ? "kiku"
             : "botan";
       this.launcher.launch(type);
     }
 
-    if (this.demoTimer > 1300) this.demoTimer = 0;
+    if (this.demoTimer > demo.resetAfter) this.demoTimer = 0;
+  }
+
+  private getFileExtension(file: File): string | null {
+    const parts = file.name.split(".");
+    if (parts.length < 2) return null;
+    return parts[parts.length - 1]!.toLowerCase();
+  }
+
+  private async getAudioDuration(file: File): Promise<number> {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const audio = new Audio();
+      const cleanup = () => {
+        URL.revokeObjectURL(url);
+        audio.src = "";
+      };
+
+      audio.preload = "metadata";
+      audio.onloadedmetadata = () => {
+        const duration = audio.duration;
+        cleanup();
+        resolve(duration);
+      };
+      audio.onerror = () => {
+        cleanup();
+        reject(new Error("音频元数据读取失败"));
+      };
+
+      audio.src = url;
+    });
+  }
+
+  private async validateAudioFile(file: File): Promise<void> {
+    const tuning = TUNING.audioUpload;
+    const extension = this.getFileExtension(file);
+    const mimeAllowed = tuning.allowedMimeTypes.some(
+      (type) => type === file.type,
+    );
+    const extAllowed =
+      extension !== null &&
+      tuning.allowedExtensions.some((ext) => ext === extension);
+
+    if (!mimeAllowed && !extAllowed) {
+      throw new Error("不支持的音频格式，请使用 mp3/wav/ogg");
+    }
+
+    if (file.size > tuning.maxFileBytes) {
+      const maxMb = Math.round(tuning.maxFileBytes / (1024 * 1024));
+      throw new Error(`音频文件过大（最大 ${maxMb}MB）`);
+    }
+
+    const duration = await this.getAudioDuration(file);
+    if (!Number.isFinite(duration) || duration <= 0) {
+      throw new Error("无法读取音频时长");
+    }
+    if (duration > tuning.maxDurationSeconds) {
+      const maxMinutes = Math.round(tuning.maxDurationSeconds / 60);
+      throw new Error(`音频时长过长（最大 ${maxMinutes} 分钟）`);
+    }
   }
 
   private setStatus(text: string): void {

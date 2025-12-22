@@ -54,7 +54,7 @@ T5 - Contribution guide
   - New contributors can run lint/build from docs alone.
 
 T6 - Test harness foundation
-- Status: Planned
+- Status: Done
 - Priority: Medium
 - Owner: Core
 - Scope: Add Vitest + first unit tests for `audio/` and `choreography/`.
@@ -62,7 +62,7 @@ T6 - Test harness foundation
   - `npm run test` exists and runs at least 3 unit tests.
 
 T7 - Audio input validation and resource cleanup
-- Status: Planned
+- Status: Done
 - Priority: Medium
 - Owner: Core
 - Scope: Validate file size/type/duration and release resources.
@@ -71,7 +71,7 @@ T7 - Audio input validation and resource cleanup
   - `URL.revokeObjectURL()` and `AudioContext.close()` paths exist.
 
 T8 - Tuning configuration extraction
-- Status: Planned
+- Status: Done
 - Priority: Medium
 - Owner: Core
 - Scope: Move hard-coded thresholds into a single config module.
@@ -87,7 +87,7 @@ T9 - CSP baseline
   - `index.html` includes a CSP meta tag that allows required assets.
 
 T10 - Diagnostics toggle
-- Status: Planned
+- Status: Done
 - Priority: Low
 - Owner: Core
 - Scope: Add a debug flag for logging/perf stats.
